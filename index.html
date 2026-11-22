@@ -1,0 +1,2355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sugarcane Biometric RCBD Statistical Workstation (STAR / agricolae / Gomez &amp; Gomez)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- docx.js for genuine client-side Microsoft Word (.docx) generation -->
+  <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['IBM Plex Mono', 'monospace'],
+          },
+          colors: {
+            cane: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              200: '#bbf7d0',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d',
+              950: '#052e16',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+    .cell-input:focus {
+      outline: 2px solid #16a34a;
+      outline-offset: -2px;
+      background-color: #f0fdf4;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #fff !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- Top Institutional Navigation & Export Bar -->
+  <header class="bg-cane-900 text-white border-b border-cane-800 shadow-sm sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-cane-800 border border-cane-600/50 flex items-center justify-center shrink-0 shadow-inner">
+          <svg class="w-6 h-6 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M12 7c2.5-1.5 5-1 6 1-2 1.5-4.5 1-6-1zM12 12c-2.5-1.5-5-1-6 1 2 1.5 4.5 1-6-1zM12 17c2.5-1.5 5-1 6 1-2 1.5-4.5 1-6-1zM9 7h6M9 12h6M9 17h6" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h1 class="text-base sm:text-lg font-bold tracking-tight">Sugarcane Biometric RCBD Workstation</h1>
+            <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-200 border border-emerald-400/30">
+              STAR / agricolae • Gomez &amp; Gomez
+            </span>
+          </div>
+          <p class="text-xs text-cane-200">Multi-Trait Agronomic ANOVA, Yates Missing-Plot Estimation, Diagnostics &amp; Automated .DOCX Reporting</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 no-print">
+        <button onclick="exportCSVAllTraits()"
+          class="px-3 py-2 rounded-xl text-xs font-semibold bg-cane-800 hover:bg-cane-700 text-white border border-cane-600/70 transition cursor-pointer">
+          Export CSV
+        </button>
+        <button id="exportDocxBtn" onclick="generateWordReport()"
+          class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-amber-400 hover:bg-amber-300 text-cane-950 shadow-md flex items-center gap-2 transition cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <span>Export Editable Report (.docx)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Workspace View Tabs -->
+    <div class="bg-cane-950/90 border-t border-cane-800/80 no-print">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex overflow-x-auto gap-1 py-1.5">
+        <button onclick="switchTab('data')" id="tabBtn_data"
+          class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer bg-cane-700 text-white">
+          1. Field Data &amp; Missing Plots
+        </button>
+        <button onclick="switchTab('summary')" id="tabBtn_summary"
+          class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer text-cane-200 hover:bg-cane-800/60">
+          2. Multi-Trait Summary &amp; Productivity Plot
+        </button>
+        <button onclick="switchTab('anova')" id="tabBtn_anova"
+          class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer text-cane-200 hover:bg-cane-800/60">
+          3. Detailed ANOVA, Gomez Steps &amp; Diagnostics
+        </button>
+        <button onclick="switchTab('report')" id="tabBtn_report"
+          class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer text-cane-200 hover:bg-cane-800/60">
+          4. Automated Interpretation &amp; Report Preview
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Toast Notification -->
+  <div id="toastBanner" class="fixed bottom-4 right-4 z-50 hidden">
+    <div class="bg-cane-900 text-white border border-cane-600 px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2.5 text-xs sm:text-sm">
+      <span class="text-amber-400 font-bold">✓</span>
+      <span id="toastMessage">Ready</span>
+    </div>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-6 flex-1">
+
+    <!-- Persistent Experiment Metadata & Controls Card -->
+    <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-slate-100">
+        <div>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-cane-800">Experiment Metadata &amp; Statistical Design Parameters</h2>
+          <p class="text-xs text-slate-500">All changes automatically recalculate across all 5 sugarcane agronomic traits and update the Word report.</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 no-print">
+          <select id="presetSelector" onchange="loadPresetDataset(this.value)"
+            class="text-xs rounded-xl border border-slate-300 bg-slate-50 px-3 py-1.5 font-semibold text-slate-800 focus:border-cane-600 focus:outline-none">
+            <option value="variety_nct">Preset 1: NCT Sugarcane Variety Trial (6 Varieties × 4 Blocks)</option>
+            <option value="fertilizer_npk">Preset 2: N-P-K Fertilizer Rate Trial (5 Rates × 4 Blocks)</option>
+            <option value="missing_plot">Preset 3: Variety Trial with Missing Plot (Yates Estimation Demo)</option>
+          </select>
+
+          <select id="postHocSelect" onchange="recomputeAll()"
+            class="text-xs rounded-xl border border-slate-300 bg-emerald-50 px-3 py-1.5 font-semibold text-cane-900 focus:border-cane-600 focus:outline-none">
+            <option value="DMRT">Post-Hoc: DMRT (5% Level)</option>
+            <option value="LSD">Post-Hoc: LSD (5% Level)</option>
+            <option value="HSD">Post-Hoc: Tukey's HSD (5% Level)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div class="lg:col-span-2">
+          <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Experiment Title</label>
+          <input id="metaTitle" type="text" oninput="recomputeAll()"
+            class="w-full text-xs sm:text-sm rounded-xl border border-slate-300 px-3 py-1.5 font-medium text-slate-800" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Station / Location</label>
+          <input id="metaLocation" type="text" oninput="recomputeAll()"
+            class="w-full text-xs sm:text-sm rounded-xl border border-slate-300 px-3 py-1.5 font-medium text-slate-800" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Researcher / Agronomist</label>
+          <input id="metaResearcher" type="text" oninput="recomputeAll()"
+            class="w-full text-xs sm:text-sm rounded-xl border border-slate-300 px-3 py-1.5 font-medium text-slate-800" />
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Crop Class &amp; Soil Type</label>
+          <input id="metaCropSoil" type="text" oninput="recomputeAll()"
+            class="w-full text-xs sm:text-sm rounded-xl border border-slate-300 px-3 py-1.5 font-medium text-slate-800" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 1: FIELD DATA ENTRY & MISSING PLOT ESTIMATION                     -->
+    <!-- ===================================================================== -->
+    <div id="view_data" class="space-y-5">
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <!-- Trait Selector & Grid Toolbar -->
+        <div class="bg-slate-900 text-white px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-xs font-semibold text-slate-400 mr-1">Active Trait:</span>
+            <button onclick="selectActiveTrait('tc_ha')" id="traitPill_tc_ha" class="trait-pill px-3 py-1 rounded-lg text-xs font-bold bg-emerald-600 text-white cursor-pointer">TC/Ha</button>
+            <button onclick="selectActiveTrait('lkg_tc')" id="traitPill_lkg_tc" class="trait-pill px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer">LKG/TC</button>
+            <button onclick="selectActiveTrait('lkg_ha')" id="traitPill_lkg_ha" class="trait-pill px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer">LKG/Ha</button>
+            <button onclick="selectActiveTrait('brix')" id="traitPill_brix" class="trait-pill px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer">Brix (%)</button>
+            <button onclick="selectActiveTrait('pol')" id="traitPill_pol" class="trait-pill px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer">Pol (%)</button>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2 no-print">
+            <button onclick="syncLkgHaFromProduct()" title="Set LKG/Ha = TC/Ha × LKG/TC for all plots"
+              class="px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/40 cursor-pointer">
+              Auto-Calc LKG/Ha = TC/Ha × LKG/TC
+            </button>
+            <button onclick="openPasteModal()"
+              class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 cursor-pointer">
+              Paste Excel / TSV
+            </button>
+            <button onclick="addTreatment()"
+              class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-700 hover:bg-emerald-600 text-white cursor-pointer">
+              + Treatment
+            </button>
+            <button onclick="removeTreatment()"
+              class="px-2 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 cursor-pointer">
+              − Trt
+            </button>
+            <button onclick="addBlock()"
+              class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-emerald-700 hover:bg-emerald-600 text-white cursor-pointer">
+              + Rep
+            </button>
+            <button onclick="removeBlock()"
+              class="px-2 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 cursor-pointer">
+              − Rep
+            </button>
+          </div>
+        </div>
+
+        <!-- Active Trait Info Strip -->
+        <div class="bg-emerald-50/80 border-b border-emerald-200/80 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div>
+            <span id="activeTraitFullTitle" class="font-bold text-cane-900">Cane Yield (TC/Ha) — Tons Cane per Hectare</span>
+            <span class="text-slate-600 ml-2">• Leave any plot blank or type <code class="px-1 py-0.5 bg-white border border-slate-300 rounded font-mono text-[11px]">NA</code> to trigger <strong>Yates' Missing-Plot Estimation</strong>.</span>
+          </div>
+          <div id="missingPlotStatusBadge" class="font-mono font-semibold text-cane-800">
+            0 Missing Plots
+          </div>
+        </div>
+
+        <!-- Data Entry Table -->
+        <div class="overflow-x-auto">
+          <table id="dataEntryTable" class="w-full text-left border-collapse font-mono text-xs sm:text-sm tabular-nums">
+            <!-- Dynamically rendered -->
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 2: MULTI-TRAIT SUMMARY TABLE & SUGARCANE PRODUCTIVITY CHART       -->
+    <!-- ===================================================================== -->
+    <div id="view_summary" class="hidden space-y-6">
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-3 mb-4 border-b border-slate-100">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Table 1. Combined Agronomic Performance &amp; Juice Quality Summary</h2>
+            <p class="text-xs text-slate-500 mt-0.5">Standard SRA Terminal Report format showing Treatment Means + Post-Hoc Letter Groupings across all 5 traits.</p>
+          </div>
+          <span id="summaryMethodTag" class="text-xs font-mono font-semibold px-3 py-1 rounded-full bg-cane-50 text-cane-900 border border-cane-200">
+            Mean Separation: DMRT (5%)
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse font-mono text-xs sm:text-[13px] tabular-nums">
+            <thead>
+              <tr class="bg-cane-900 text-white">
+                <th class="py-3 px-3.5 font-sans font-bold">Treatment / Variety</th>
+                <th class="py-3 px-3 text-right font-bold">TC/Ha</th>
+                <th class="py-3 px-3 text-right font-bold">LKG/TC</th>
+                <th class="py-3 px-3 text-right font-bold bg-cane-950 text-amber-300">LKG/Ha</th>
+                <th class="py-3 px-3 text-right font-bold">Brix (%)</th>
+                <th class="py-3 px-3 text-right font-bold">Pol (%)</th>
+              </tr>
+            </thead>
+            <tbody id="multiTraitSummaryBody" class="divide-y divide-slate-200">
+              <!-- Dynamically rendered -->
+            </tbody>
+          </table>
+        </div>
+
+        <p id="multiTraitFootnote" class="mt-3 text-xs text-slate-500 italic">
+          In a column, means followed by a common letter are not significantly different at the 5% level by DMRT. ns = not significant; * = significant at 5%; ** = highly significant at 1%.
+        </p>
+      </section>
+
+      <!-- Sugarcane Productivity Quadrant Chart (TC/Ha vs LKG/TC) + Key Yield Bar Chart -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col">
+          <div class="pb-3 mb-3 border-b border-slate-100">
+            <h3 class="text-sm font-bold text-slate-900">Sugar Yield (LKG/Ha) Performance &amp; Grouping</h3>
+            <p class="text-xs text-slate-500">Treatment Means &plusmn; SE with significance letters (dashed line = Trial Grand Mean)</p>
+          </div>
+          <div class="h-[310px] w-full">
+            <canvas id="summaryLkgBarCanvas" class="w-full h-full"></canvas>
+          </div>
+        </section>
+
+        <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col">
+          <div class="pb-3 mb-3 border-b border-slate-100">
+            <h3 class="text-sm font-bold text-slate-900">Tonnage (TC/Ha) vs. Sucrose Quality (LKG/TC) Quadrant</h3>
+            <p class="text-xs text-slate-500">Identifies high-tonnage, high-rendement varieties in the upper-right elite quadrant</p>
+          </div>
+          <div class="h-[310px] w-full">
+            <canvas id="quadrantScatterCanvas" class="w-full h-full"></canvas>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 3: DETAILED TRAIT ANOVA, GOMEZ & GOMEZ STEPS & DIAGNOSTICS        -->
+    <!-- ===================================================================== -->
+    <div id="view_anova" class="hidden space-y-6">
+      <!-- Trait Switcher Bar inside ANOVA Tab -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-3 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="text-xs font-bold text-slate-600 px-2">Inspect Trait:</span>
+          <button onclick="selectActiveTrait('tc_ha')" class="anova-trait-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-cane-800 text-white cursor-pointer" data-trait="tc_ha">TC/Ha</button>
+          <button onclick="selectActiveTrait('lkg_tc')" class="anova-trait-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer" data-trait="lkg_tc">LKG/TC</button>
+          <button onclick="selectActiveTrait('lkg_ha')" class="anova-trait-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer" data-trait="lkg_ha">LKG/Ha</button>
+          <button onclick="selectActiveTrait('brix')" class="anova-trait-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer" data-trait="brix">Brix (%)</button>
+          <button onclick="selectActiveTrait('pol')" class="anova-trait-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer" data-trait="pol">Pol (%)</button>
+        </div>
+        <div id="anovaCurrentTraitLabel" class="text-xs font-mono font-bold text-cane-800 px-2">
+          Cane Yield (TC/Ha)
+        </div>
+      </div>
+
+      <!-- Gomez Intermediate Steps + RCBD ANOVA Table -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <section class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col justify-between">
+          <div>
+            <div class="pb-3 mb-3 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 class="text-xs font-bold uppercase tracking-wider text-cane-800">Gomez &amp; Gomez Quantities</h3>
+                <p class="text-[11px] text-slate-500">Intermediate Sums of Squares &amp; C.F.</p>
+              </div>
+              <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cane-50 text-cane-800 border border-cane-200">Ch. 2</span>
+            </div>
+            <div id="gomezStepsBox" class="space-y-2 font-mono text-xs"></div>
+          </div>
+          <div id="cvPrecisionBox" class="mt-4 p-3 rounded-xl bg-cane-50 border border-cane-200 text-xs"></div>
+        </section>
+
+        <section class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100">
+            <div>
+              <h3 class="text-sm font-bold uppercase tracking-wider text-cane-800">Analysis of Variance (RCBD ANOVA Table)</h3>
+              <p class="text-xs text-slate-500">Includes exact F-ratios, tabular F (5% &amp; 1%), and Yates missing-plot df/SS adjustments if applicable</p>
+            </div>
+            <span id="anovaSigBadge" class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-900"></span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse font-mono text-xs sm:text-[13px] tabular-nums">
+              <thead>
+                <tr class="bg-slate-100 text-slate-700 border-y border-slate-300">
+                  <th class="py-2.5 px-3 font-bold">Source of Variation</th>
+                  <th class="py-2.5 px-2 text-right font-bold">df</th>
+                  <th class="py-2.5 px-3 text-right font-bold">Sum of Squares</th>
+                  <th class="py-2.5 px-3 text-right font-bold">Mean Square</th>
+                  <th class="py-2.5 px-3 text-right font-bold">Computed F</th>
+                  <th class="py-2.5 px-2 text-right font-bold">F-tab 5%</th>
+                  <th class="py-2.5 px-2 text-right font-bold">F-tab 1%</th>
+                  <th class="py-2.5 px-2 text-right font-bold">P-value</th>
+                  <th class="py-2.5 px-2 text-center font-bold">Sig.</th>
+                </tr>
+              </thead>
+              <tbody id="detailedAnovaBody" class="divide-y divide-slate-200"></tbody>
+            </table>
+          </div>
+
+          <div id="anovaMissingNote" class="mt-3 text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-2.5 hidden"></div>
+        </section>
+      </div>
+
+      <!-- Ranked Mean Separation + Bar Chart + Residual Assumption Diagnostics -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <section class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5">
+          <div class="pb-3 mb-3 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-slate-900">Ranked Treatment Means &amp; Grouping</h3>
+              <p class="text-xs text-slate-500">Ordered highest to lowest with critical range parameters</p>
+            </div>
+            <span id="criticalValueBadge" class="text-xs font-mono font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800"></span>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse font-mono text-xs sm:text-[13px] tabular-nums">
+              <thead>
+                <tr class="bg-slate-100 text-slate-700 border-y border-slate-300">
+                  <th class="py-2 px-2.5 font-bold">Rank</th>
+                  <th class="py-2 px-2.5 font-sans font-bold">Treatment / Variety</th>
+                  <th class="py-2 px-2.5 text-right font-bold">Mean</th>
+                  <th class="py-2 px-2.5 text-center font-bold">Group</th>
+                  <th class="py-2 px-2.5 text-right font-bold">% vs Mean</th>
+                </tr>
+              </thead>
+              <tbody id="detailedRankedBody" class="divide-y divide-slate-200"></tbody>
+            </table>
+          </div>
+
+          <!-- ANOVA Assumption Diagnostics Card -->
+          <div class="mt-4 pt-4 border-t border-slate-200">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">ANOVA Model Assumption Diagnostics</h4>
+            <div id="assumptionDiagnosticsGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs"></div>
+          </div>
+        </section>
+
+        <section class="lg:col-span-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-5 flex flex-col justify-between space-y-4">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">Treatment Mean Profile (&plusmn; SE)</h3>
+            <div class="h-[235px] w-full mt-2">
+              <canvas id="detailedTraitBarCanvas" class="w-full h-full"></canvas>
+            </div>
+          </div>
+          <div class="pt-3 border-t border-slate-100">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Residuals vs. Fitted Values (Homoscedasticity Check)</h3>
+            <div class="h-[175px] w-full mt-1">
+              <canvas id="residualPlotCanvas" class="w-full h-full"></canvas>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 4: AUTOMATED INTERPRETATION & WORD REPORT PREVIEW                 -->
+    <!-- ===================================================================== -->
+    <div id="view_report" class="hidden space-y-6">
+      <section class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-8 max-w-4xl mx-auto">
+        <div class="flex flex-wrap items-center justify-between gap-3 pb-4 mb-6 border-b-2 border-cane-800">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-widest text-cane-700">Sugarcane Research Technical Report Preview</div>
+            <h2 id="previewDocTitle" class="text-xl font-extrabold text-slate-900 mt-1">NCT Sugarcane Variety Trial</h2>
+            <p id="previewDocSubtitle" class="text-xs text-slate-600 mt-0.5">SRA-LAREC, Floridablanca, Pampanga</p>
+          </div>
+          <button onclick="generateWordReport()"
+            class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-cane-800 hover:bg-cane-700 text-white shadow cursor-pointer">
+            Download Editable .DOCX
+          </button>
+        </div>
+
+        <div id="narrativeInterpretationPreview" class="space-y-4 text-sm text-slate-800 leading-relaxed">
+          <!-- Populated dynamically with rich publication-ready narrative -->
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+  <!-- Paste Modal -->
+  <div id="pasteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl border border-slate-200 max-w-xl w-full p-5 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <h3 class="text-base font-bold text-slate-900">Paste Data for Active Trait from Excel / CSV</h3>
+        <button onclick="closePasteModal()" class="text-slate-400 hover:text-slate-700 text-lg font-bold px-2 cursor-pointer">&times;</button>
+      </div>
+      <p class="text-xs text-slate-600">
+        Paste rows for <strong id="pasteModalTraitName" class="text-cane-800">TC/Ha</strong> with Treatment Name in Column 1 followed by Replication values (use <code class="bg-slate-100 px-1 rounded">NA</code> or blank for missing plots):
+      </p>
+      <textarea id="pasteTextarea" rows="7" placeholder="Phil 2006-2289&#9;114.2&#9;118.5&#9;111.8&#9;116.0&#10;Phil 2009-1869&#9;106.4&#9;NA&#9;105.0&#9;108.2"
+        class="w-full rounded-xl border border-slate-300 p-3 font-mono text-xs text-slate-800 focus:border-cane-600 focus:outline-none"></textarea>
+      <div class="flex justify-end gap-2">
+        <button onclick="closePasteModal()" class="px-4 py-2 rounded-xl text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer">Cancel</button>
+        <button onclick="applyPastedData()" class="px-4 py-2 rounded-xl text-xs font-semibold bg-cane-800 hover:bg-cane-700 text-white cursor-pointer">Import Into Active Trait</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. TRAIT DEFINITIONS & REALISTIC SRA-LAREC SUGARCANE DATASETS
+    // =========================================================================
+    const TRAIT_META = {
+      tc_ha:  { key: "tc_ha",  short: "TC/Ha",   label: "Cane Yield (TC/Ha)",      unit: "t/ha",    dec: 2, desc: "Tons Cane per Hectare" },
+      lkg_tc: { key: "lkg_tc", short: "LKG/TC",  label: "Rendement (LKG/TC)",      unit: "LKg/TC",  dec: 2, desc: "50-kg Bags Sugar per Ton Cane" },
+      lkg_ha: { key: "lkg_ha", short: "LKG/Ha",  label: "Sugar Yield (LKG/Ha)",    unit: "LKg/ha",  dec: 2, desc: "Total Sugar Yield per Hectare" },
+      brix:   { key: "brix",   short: "Brix (%)",label: "Brix (%)",                unit: "%",       dec: 2, desc: "Total Soluble Solids in Juice" },
+      pol:    { key: "pol",    short: "Pol (%)", label: "Pol (%)",                 unit: "%",       dec: 2, desc: "Apparent Sucrose Content" }
+    };
+    const TRAIT_KEYS = ["tc_ha", "lkg_tc", "lkg_ha", "brix", "pol"];
+
+    const PRESET_DATASETS = {
+      variety_nct: {
+        title: "National Cooperative Test (NCT) — Agronomic & Juice Quality Evaluation of Promising Sugarcane Varieties",
+        location: "SRA-LAREC, Floridablanca, Pampanga",
+        researcher: "Senior Science Research Specialist, Agronomy Section",
+        cropSoil: "Plant Cane (12 MAP) • Angeles Sandy Loam",
+        blocks: ["Block I", "Block II", "Block III", "Block IV"],
+        treatments: ["Phil 2006-2289", "Phil 2009-1869", "Phil 2000-2569", "Phil 99-1793 (Check)", "VMC 84-524 (Check)", "PS 881"],
+        data: {
+          tc_ha: [
+            [116.4, 121.2, 113.8, 118.6],
+            [108.5, 112.4, 105.9, 110.2],
+            [122.8, 127.5, 119.4, 124.3],
+            [98.4,  102.1, 95.8,  99.7],
+            [103.2, 107.6, 100.5, 104.7],
+            [94.6,  98.2,  92.1,  95.9]
+          ],
+          lkg_tc: [
+            [2.04, 2.02, 2.05, 2.03],
+            [1.98, 1.97, 1.99, 1.98],
+            [2.08, 2.07, 2.09, 2.08],
+            [1.94, 1.93, 1.95, 1.94],
+            [1.96, 1.95, 1.97, 1.96],
+            [1.89, 1.88, 1.90, 1.89]
+          ],
+          lkg_ha: [
+            [237.46, 244.82, 233.29, 240.76],
+            [214.83, 221.43, 210.74, 218.20],
+            [255.42, 263.93, 249.55, 258.54],
+            [190.90, 197.05, 186.81, 193.42],
+            [202.27, 209.82, 197.99, 205.21],
+            [178.79, 184.62, 174.99, 181.25]
+          ],
+          brix: [
+            [21.4, 21.2, 21.5, 21.3],
+            [20.8, 20.6, 20.9, 20.7],
+            [21.8, 21.7, 22.0, 21.9],
+            [20.3, 20.2, 20.4, 20.3],
+            [20.5, 20.4, 20.6, 20.5],
+            [19.9, 19.8, 20.0, 19.9]
+          ],
+          pol: [
+            [18.85, 18.68, 18.94, 18.76],
+            [18.24, 18.12, 18.35, 18.22],
+            [19.22, 19.10, 19.34, 19.25],
+            [17.82, 17.70, 17.91, 17.80],
+            [18.02, 17.90, 18.11, 18.00],
+            [17.38, 17.26, 17.48, 17.35]
+          ]
+        }
+      },
+      fertilizer_npk: {
+        title: "Response of Phil 2006-2289 Sugarcane to Varying Inorganic N-P-K Fertilizer Rates",
+        location: "SRA-LAREC Experimental Station, Pampanga",
+        researcher: "Soils & Plant Nutrition Unit, SRA-LAREC",
+        cropSoil: "First Ratoon • La Paz Fine Sandy Loam",
+        blocks: ["Rep I", "Rep II", "Rep III", "Rep IV"],
+        treatments: [
+          "T1: Unfertilized Control (0-0-0)",
+          "T2: 50% RR (100-35-100 kg/ha)",
+          "T3: 75% RR (150-52.5-150 kg/ha)",
+          "T4: 100% RR (200-70-200 kg/ha)",
+          "T5: 125% RR (250-87.5-250 kg/ha)"
+        ],
+        data: {
+          tc_ha: [
+            [74.2, 78.5, 72.1, 76.0],
+            [92.4, 96.8, 90.2, 94.6],
+            [108.6, 113.2, 106.4, 110.8],
+            [119.5, 124.0, 117.2, 121.3],
+            [121.2, 125.4, 118.8, 122.6]
+          ],
+          lkg_tc: [
+            [2.05, 2.04, 2.06, 2.05],
+            [2.04, 2.03, 2.05, 2.04],
+            [2.02, 2.01, 2.03, 2.02],
+            [1.99, 1.98, 2.00, 1.99],
+            [1.91, 1.90, 1.92, 1.91]
+          ],
+          lkg_ha: [
+            [152.11, 160.14, 148.53, 155.80],
+            [188.50, 196.50, 184.91, 192.98],
+            [219.37, 227.53, 215.99, 223.82],
+            [237.81, 245.52, 234.40, 241.39],
+            [231.49, 238.26, 228.10, 234.17]
+          ],
+          brix: [
+            [21.5, 21.4, 21.6, 21.5],
+            [21.4, 21.3, 21.5, 21.4],
+            [21.2, 21.1, 21.3, 21.2],
+            [20.9, 20.8, 21.0, 20.9],
+            [20.2, 20.1, 20.3, 20.2]
+          ],
+          pol: [
+            [18.92, 18.80, 19.01, 18.90],
+            [18.82, 18.71, 18.90, 18.80],
+            [18.64, 18.52, 18.73, 18.61],
+            [18.35, 18.24, 18.44, 18.32],
+            [17.65, 17.54, 17.74, 17.62]
+          ]
+        }
+      },
+      missing_plot: {
+        title: "Preliminary Yield Trial (PYT) — With Rat-Damaged Missing Plot (Yates' Estimation)",
+        location: "SRA-LAREC, Floridablanca, Pampanga",
+        researcher: "Variety Improvement & Testing Section",
+        cropSoil: "Plant Cane • Sandy Loam (1 Missing Observation in Block II)",
+        blocks: ["Block I", "Block II", "Block III", "Block IV"],
+        treatments: ["Phil 2006-2289", "Phil 2009-1869", "Phil 2000-2569", "Phil 99-1793 (Check)", "VMC 84-524 (Check)"],
+        data: {
+          tc_ha: [
+            [115.2, null,  112.8, 117.4],
+            [106.4, 110.2, 104.8, 108.6],
+            [121.0, 125.4, 118.6, 122.8],
+            [97.5,  101.2, 95.4,  98.9],
+            [102.0, 106.1, 99.8,  103.5]
+          ],
+          lkg_tc: [
+            [2.03, null, 2.04, 2.02],
+            [1.98, 1.97, 1.99, 1.98],
+            [2.07, 2.06, 2.08, 2.07],
+            [1.94, 1.93, 1.95, 1.94],
+            [1.96, 1.95, 1.97, 1.96]
+          ],
+          lkg_ha: [
+            [233.86, null,   230.11, 237.15],
+            [210.67, 217.09, 208.55, 215.03],
+            [250.47, 258.32, 246.69, 254.20],
+            [189.15, 195.32, 186.03, 191.87],
+            [199.92, 206.90, 196.61, 202.86]
+          ],
+          brix: [
+            [21.3, null, 21.4, 21.2],
+            [20.8, 20.7, 20.9, 20.8],
+            [21.7, 21.6, 21.8, 21.7],
+            [20.3, 20.2, 20.4, 20.3],
+            [20.5, 20.4, 20.6, 20.5]
+          ],
+          pol: [
+            [18.76, null,  18.85, 18.68],
+            [18.24, 18.14, 18.32, 18.22],
+            [19.12, 19.02, 19.21, 19.10],
+            [17.80, 17.71, 17.89, 17.79],
+            [18.00, 17.90, 18.09, 17.98]
+          ]
+        }
+      }
+    };
+
+    let appState = JSON.parse(JSON.stringify(PRESET_DATASETS.variety_nct));
+    let activeTrait = "tc_ha";
+    let activeTab = "data";
+    let allTraitResults = {};
+
+    // =========================================================================
+    // 2. EXACT STATISTICAL DISTRIBUTIONS (F, t, Studentized Range / DMRT)
+    // =========================================================================
+    function logGamma(z) {
+      const c = [
+        76.18009172947146, -86.50532032941677, 24.01409824083091,
+        -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5
+      ];
+      let x = z, y = z;
+      let tmp = x + 5.5;
+      tmp -= (x + 0.5) * Math.log(tmp);
+      let ser = 1.000000000190015;
+      for (let j = 0; j < 6; j++) ser += c[j] / ++y;
+      return -tmp + Math.log(2.5066282746310005 * ser / x);
+    }
+
+    function betacf(a, b, x) {
+      const MAXIT = 200, EPS = 3.0e-12, FPMIN = 1.0e-30;
+      let qab = a + b, qap = a + 1.0, qam = a - 1.0;
+      let c = 1.0, d = 1.0 - qab * x / qap;
+      if (Math.abs(d) < FPMIN) d = FPMIN;
+      d = 1.0 / d;
+      let h = d;
+      for (let m = 1; m <= MAXIT; m++) {
+        let m2 = 2 * m;
+        let aa = m * (b - m) * x / ((qam + m2) * (a + m2));
+        d = 1.0 + aa * d;
+        if (Math.abs(d) < FPMIN) d = FPMIN;
+        c = 1.0 + aa / c;
+        if (Math.abs(c) < FPMIN) c = FPMIN;
+        d = 1.0 / d;
+        h *= d * c;
+        aa = -(a + m) * (qab + m) * x / ((a + m2) * (qap + m2));
+        d = 1.0 + aa * d;
+        if (Math.abs(d) < FPMIN) d = FPMIN;
+        c = 1.0 + aa / c;
+        if (Math.abs(c) < FPMIN) c = FPMIN;
+        d = 1.0 / d;
+        let del = d * c;
+        h *= del;
+        if (Math.abs(del - 1.0) < EPS) break;
+      }
+      return h;
+    }
+
+    function betai(a, b, x) {
+      if (x <= 0.0) return 0.0;
+      if (x >= 1.0) return 1.0;
+      const bt = Math.exp(logGamma(a + b) - logGamma(a) - logGamma(b) + a * Math.log(x) + b * Math.log(1.0 - x));
+      return x < (a + 1.0) / (a + b + 2.0) ? bt * betacf(a, b, x) / a : 1.0 - bt * betacf(b, a, 1.0 - x) / b;
+    }
+
+    function fPValue(F, df1, df2) {
+      if (F <= 0 || df1 <= 0 || df2 <= 0) return 1.0;
+      return betai(df2 / 2.0, df1 / 2.0, df2 / (df2 + df1 * F));
+    }
+
+    function fCritical(alpha, df1, df2) {
+      if (df1 <= 0 || df2 <= 0) return NaN;
+      let low = 0.0, high = 1000.0;
+      while (fPValue(high, df1, df2) > alpha && high < 1e8) high *= 2.0;
+      for (let i = 0; i < 65; i++) {
+        const mid = 0.5 * (low + high);
+        if (fPValue(mid, df1, df2) > alpha) low = mid;
+        else high = mid;
+      }
+      return 0.5 * (low + high);
+    }
+
+    function tCriticalTwoTailed(alpha, df) {
+      return df > 0 ? Math.sqrt(fCritical(alpha, 1, df)) : NaN;
+    }
+
+    function normCDF(z) {
+      const sign = z < 0 ? -1 : 1;
+      const x = Math.abs(z) / Math.SQRT2;
+      const t = 1.0 / (1.0 + 0.3275911 * x);
+      const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429;
+      const erf = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+      return 0.5 * (1.0 + sign * erf);
+    }
+
+    function normPDF(z) {
+      return Math.exp(-0.5 * z * z) / Math.sqrt(2.0 * Math.PI);
+    }
+
+    function studentizedRangeCDF(q, k, df) {
+      if (q <= 0) return 0.0;
+      const nodes = [
+        -0.9894009349916499, -0.9445750230732326, -0.8656312023878318, -0.7554044083550030,
+        -0.6178762444026438, -0.4580167776572274, -0.2816035507792589, -0.0950125098376374,
+         0.0950125098376374,  0.2816035507792589,  0.4580167776572274,  0.6178762444026438,
+         0.7554044083550030,  0.8656312023878318,  0.9445750230732326,  0.9894009349916499
+      ];
+      const weights = [
+        0.0271524594117541, 0.0622535239386479, 0.0951585116824928, 0.1246289712555339,
+        0.1495959888165767, 0.1691565193950025, 0.1826034150449236, 0.1894506104550685,
+        0.1894506104550685, 0.1826034150449236, 0.1691565193950025, 0.1495959888165767,
+        0.1246289712555339, 0.0951585116824928, 0.0622535239386479, 0.0271524594117541
+      ];
+      function rangeFixedS(qs) {
+        const a = -6.5, b = 6.5, half = 6.5, mid = 0.0;
+        let sum = 0.0;
+        for (let i = 0; i < 16; i++) {
+          const z = mid + half * nodes[i];
+          const diff = Math.max(0.0, normCDF(z + qs) - normCDF(z));
+          sum += weights[i] * k * normPDF(z) * Math.pow(diff, k - 1);
+        }
+        return Math.min(1.0, Math.max(0.0, half * sum));
+      }
+      if (!isFinite(df) || df > 500) return rangeFixedS(q);
+      const nu = df;
+      const logNorm = (nu / 2.0) * Math.log(nu / 2.0) - logGamma(nu / 2.0) + Math.log(2.0);
+      const tMin = 0.001, tMax = Math.max(3.5, 1.0 + 6.0 / Math.sqrt(2.0 * nu));
+      const halfT = 0.5 * (tMax - tMin), midT = 0.5 * (tMax + tMin);
+      let outerSum = 0.0;
+      for (let j = 0; j < 16; j++) {
+        const t = midT + halfT * nodes[j];
+        const pdfT = Math.exp(logNorm + (nu - 1.0) * Math.log(t) - 0.5 * nu * t * t);
+        outerSum += weights[j] * pdfT * rangeFixedS(q * t);
+      }
+      return Math.min(1.0, Math.max(0.0, halfT * outerSum));
+    }
+
+    function studentizedRangeCritical(targetAlpha, p, df) {
+      if (p < 2 || df <= 0) return NaN;
+      let low = 0.1, high = 25.0;
+      while (1.0 - studentizedRangeCDF(high, p, df) > targetAlpha && high < 200) high *= 1.5;
+      for (let iter = 0; iter < 40; iter++) {
+        const mid = 0.5 * (low + high);
+        if (1.0 - studentizedRangeCDF(mid, p, df) > targetAlpha) low = mid;
+        else high = mid;
+      }
+      return 0.5 * (low + high);
+    }
+
+    // =========================================================================
+    // 3. YATES' MISSING-PLOT ESTIMATION + GOMEZ & GOMEZ ANOVA ENGINE
+    // =========================================================================
+    function analyzeTrait(traitKey, postHocMethod) {
+      const t = appState.treatments.length;
+      const r = appState.blocks.length;
+      const N = t * r;
+      const rawMatrix = appState.data[traitKey];
+
+      // Identify missing plots (null / NaN)
+      const missingCells = [];
+      const filled = Array.from({ length: t }, (_, i) =>
+        Array.from({ length: r }, (_, j) => {
+          const val = rawMatrix[i][j];
+          if (val === null || val === undefined || isNaN(val)) {
+            missingCells.push({ i, j });
+            return null;
+          }
+          return Number(val);
+        })
+      );
+
+      // Initialize missing values with overall mean of available plots
+      let availSum = 0, availCount = 0;
+      for (let i = 0; i < t; i++) {
+        for (let j = 0; j < r; j++) {
+          if (filled[i][j] !== null) {
+            availSum += filled[i][j];
+            availCount++;
+          }
+        }
+      }
+      const initMean = availCount > 0 ? availSum / availCount : 0;
+      missingCells.forEach(mc => { filled[mc.i][mc.j] = initMean; });
+
+      // Yates' Exact (1 missing) or Gauss-Seidel Iterative (>1 missing) RCBD Formula
+      if (missingCells.length > 0 && t > 1 && r > 1) {
+        const maxIter = missingCells.length === 1 ? 1 : 60;
+        for (let iter = 0; iter < maxIter; iter++) {
+          let maxDelta = 0;
+          for (const mc of missingCells) {
+            // B = sum of known/current values in block mc.j EXCLUDING cell (mc.i, mc.j)
+            let B_excl = 0;
+            for (let ii = 0; ii < t; ii++) {
+              if (ii !== mc.i) B_excl += filled[ii][mc.j];
+            }
+            // T = sum of known/current values in treatment mc.i EXCLUDING cell (mc.i, mc.j)
+            let T_excl = 0;
+            for (let jj = 0; jj < r; jj++) {
+              if (jj !== mc.j) T_excl += filled[mc.i][jj];
+            }
+            // G = sum of all cells EXCLUDING cell (mc.i, mc.j)
+            let G_excl = 0;
+            for (let ii = 0; ii < t; ii++) {
+              for (let jj = 0; jj < r; jj++) {
+                if (!(ii === mc.i && jj === mc.j)) G_excl += filled[ii][jj];
+              }
+            }
+            const xHat = (r * B_excl + t * T_excl - G_excl) / ((r - 1) * (t - 1));
+            maxDelta = Math.max(maxDelta, Math.abs(xHat - filled[mc.i][mc.j]));
+            filled[mc.i][mc.j] = xHat;
+          }
+          if (maxDelta < 1e-8) break;
+        }
+      }
+
+      // Compute Margin Totals & Gomez & Gomez Quantities
+      const trtTotals = new Array(t).fill(0);
+      const trtMeans = new Array(t).fill(0);
+      const blockTotals = new Array(r).fill(0);
+      const blockMeans = new Array(r).fill(0);
+      let grandTotal = 0;
+      let sumX2 = 0;
+
+      for (let i = 0; i < t; i++) {
+        for (let j = 0; j < r; j++) {
+          const x = filled[i][j];
+          trtTotals[i] += x;
+          blockTotals[j] += x;
+          grandTotal += x;
+          sumX2 += x * x;
+        }
+        trtMeans[i] = trtTotals[i] / r;
+      }
+      for (let j = 0; j < r; j++) blockMeans[j] = blockTotals[j] / t;
+      const grandMean = grandTotal / N;
+
+      const sumB2 = blockTotals.reduce((a, b) => a + b * b, 0);
+      const sumT2 = trtTotals.reduce((a, b) => a + b * b, 0);
+
+      const CF = (grandTotal * grandTotal) / N;
+      const totalSS = Math.max(0, sumX2 - CF);
+      const repSS = Math.max(0, (sumB2 / t) - CF);
+      let trtSS = Math.max(0, (sumT2 / r) - CF);
+      const errSS = Math.max(0, totalSS - repSS - trtSS);
+
+      // Gomez & Gomez Ch. 2.4.1 Bias Correction for Treatment SS when 1 missing plot exists
+      let biasCorrection = 0;
+      if (missingCells.length === 1 && t > 1 && r > 1) {
+        const mc = missingCells[0];
+        let B_excl = 0;
+        for (let ii = 0; ii < t; ii++) if (ii !== mc.i) B_excl += filled[ii][mc.j];
+        const xHat = filled[mc.i][mc.j];
+        const diff = B_excl - (t - 1) * xHat;
+        biasCorrection = (diff * diff) / (t * (t - 1));
+        trtSS = Math.max(0, trtSS - biasCorrection);
+      }
+
+      const dfRep = r - 1;
+      const dfTrt = t - 1;
+      const dfErr = Math.max(1, (r - 1) * (t - 1) - missingCells.length);
+      const dfTotal = Math.max(1, N - 1 - missingCells.length);
+
+      const msRep = repSS / dfRep;
+      const msTrt = trtSS / dfTrt;
+      const msErr = errSS / dfErr;
+
+      const fRep = msErr > 0 ? msRep / msErr : 0;
+      const fTrt = msErr > 0 ? msTrt / msErr : 0;
+
+      const fTab5Rep = fCritical(0.05, dfRep, dfErr);
+      const fTab1Rep = fCritical(0.01, dfRep, dfErr);
+      const pRep = fPValue(fRep, dfRep, dfErr);
+      const sigRep = fRep >= fTab1Rep ? "**" : fRep >= fTab5Rep ? "*" : "ns";
+
+      const fTab5Trt = fCritical(0.05, dfTrt, dfErr);
+      const fTab1Trt = fCritical(0.01, dfTrt, dfErr);
+      const pTrt = fPValue(fTrt, dfTrt, dfErr);
+      const sigTrt = fTrt >= fTab1Trt ? "**" : fTrt >= fTab5Trt ? "*" : "ns";
+
+      const seMean = Math.sqrt(msErr / r);
+      const seDiff = Math.sqrt((2 * msErr) / r);
+      const cvPercent = grandMean !== 0 ? (Math.sqrt(msErr) / Math.abs(grandMean)) * 100 : 0;
+
+      // Post-Hoc Mean Separation & Letter Grouping
+      const ranked = appState.treatments.map((name, idx) => ({
+        index: idx,
+        name,
+        total: trtTotals[idx],
+        mean: trtMeans[idx],
+        letters: ""
+      })).sort((a, b) => b.mean - a.mean);
+
+      const thresholdMatrix = Array.from({ length: t }, () => new Array(t).fill(0));
+      let criticalSummary = "";
+      let criticalSingleValue = 0;
+
+      if (postHocMethod === "LSD") {
+        const tCrit = tCriticalTwoTailed(0.05, dfErr);
+        criticalSingleValue = tCrit * seDiff;
+        for (let i = 0; i < t; i++) for (let j = 0; j < t; j++) thresholdMatrix[i][j] = criticalSingleValue;
+        criticalSummary = `LSD (5%) = ${criticalSingleValue.toFixed(3)}`;
+      } else if (postHocMethod === "HSD") {
+        const qCrit = studentizedRangeCritical(0.05, t, dfErr);
+        criticalSingleValue = qCrit * seMean;
+        for (let i = 0; i < t; i++) for (let j = 0; j < t; j++) thresholdMatrix[i][j] = criticalSingleValue;
+        criticalSummary = `HSD (5%) = ${criticalSingleValue.toFixed(3)}`;
+      } else {
+        const rpMap = {};
+        for (let p = 2; p <= t; p++) {
+          const alphaP = 1.0 - Math.pow(0.95, p - 1);
+          rpMap[p] = studentizedRangeCritical(alphaP, p, dfErr) * seMean;
+        }
+        criticalSingleValue = rpMap[2] || 0;
+        for (let i = 0; i < t; i++) {
+          for (let j = 0; j < t; j++) {
+            const p = Math.abs(i - j) + 1;
+            thresholdMatrix[i][j] = p >= 2 ? rpMap[p] : 0;
+          }
+        }
+        criticalSummary = `DMRT R₂..R${t} = ${rpMap[2]?.toFixed(2)}..${rpMap[t]?.toFixed(2)}`;
+      }
+
+      assignLetters(ranked, thresholdMatrix);
+      const letterByOrigIndex = new Array(t).fill("");
+      ranked.forEach(item => { letterByOrigIndex[item.index] = item.letters; });
+
+      // Residual Diagnostics (y_hat_ij = TrtMean_i + BlockMean_j - GrandMean)
+      const residuals = [];
+      const fittedVals = [];
+      let maxAbsStdResid = 0;
+      let m2 = 0, m3 = 0, m4 = 0;
+
+      for (let i = 0; i < t; i++) {
+        for (let j = 0; j < r; j++) {
+          const yHat = trtMeans[i] + blockMeans[j] - grandMean;
+          const e = filled[i][j] - yHat;
+          fittedVals.push(yHat);
+          residuals.push(e);
+          m2 += e * e;
+          m3 += e * e * e;
+          m4 += e * e * e * e;
+        }
+      }
+      const nObs = residuals.length;
+      const sigmaHat = Math.sqrt(msErr);
+      residuals.forEach(e => {
+        if (sigmaHat > 0) maxAbsStdResid = Math.max(maxAbsStdResid, Math.abs(e / sigmaHat));
+      });
+
+      // Jarque-Bera Normality Statistic
+      m2 /= nObs; m3 /= nObs; m4 /= nObs;
+      const skewness = m2 > 0 ? m3 / Math.pow(m2, 1.5) : 0;
+      const kurtosis = m2 > 0 ? m4 / (m2 * m2) : 3;
+      const jbStat = (nObs / 6.0) * (skewness * skewness + 0.25 * Math.pow(kurtosis - 3, 2));
+      const normalityOk = jbStat < 5.99; // Chi-sq(2) 5% critical value
+
+      // Treatment Variance Ratio (Hartley F-max check for homoscedasticity)
+      const trtVars = [];
+      for (let i = 0; i < t; i++) {
+        let s = 0;
+        for (let j = 0; j < r; j++) {
+          const e = filled[i][j] - (trtMeans[i] + blockMeans[j] - grandMean);
+          s += e * e;
+        }
+        trtVars.push(s / Math.max(1, r - 1));
+      }
+      const minVar = Math.max(1e-9, Math.min(...trtVars));
+      const maxVar = Math.max(...trtVars);
+      const fMax = maxVar / minVar;
+      const homoscedasticOk = fMax < 10.0;
+
+      return {
+        traitKey,
+        meta: TRAIT_META[traitKey],
+        t, r, N,
+        filled,
+        missingCells,
+        biasCorrection,
+        trtTotals, trtMeans, blockTotals, blockMeans,
+        grandTotal, grandMean,
+        sumX2, sumB2, sumT2, CF, totalSS, repSS, trtSS, errSS,
+        dfRep, dfTrt, dfErr, dfTotal,
+        msRep, msTrt, msErr,
+        fRep, fTrt, fTab5Rep, fTab1Rep, pRep, sigRep,
+        fTab5Trt, fTab1Trt, pTrt, sigTrt,
+        seMean, seDiff, cvPercent,
+        ranked, letterByOrigIndex,
+        criticalSummary, criticalSingleValue,
+        residuals, fittedVals,
+        diagnostics: {
+          jbStat, normalityOk,
+          fMax, homoscedasticOk,
+          maxAbsStdResid, outliersOk: maxAbsStdResid <= 2.5
+        }
+      };
+    }
+
+    function assignLetters(ranked, thresholdMatrix) {
+      const n = ranked.length;
+      const nonSig = Array.from({ length: n }, () => new Array(n).fill(true));
+      for (let i = 0; i < n; i++) {
+        for (let j = i + 1; j < n; j++) {
+          let isSig = Math.abs(ranked[i].mean - ranked[j].mean) > thresholdMatrix[i][j];
+          if (!isSig) {
+            for (let a = i; a <= j; a++) {
+              for (let b = a + 1; b <= j; b++) {
+                if (Math.abs(ranked[a].mean - ranked[b].mean) > thresholdMatrix[a][b]) {
+                  isSig = true; break;
+                }
+              }
+              if (isSig) break;
+            }
+          }
+          nonSig[i][j] = nonSig[j][i] = !isSig;
+        }
+      }
+      const intervals = [];
+      for (let start = 0; start < n; start++) {
+        let end = start;
+        while (end + 1 < n) {
+          let ok = true;
+          for (let k = start; k <= end; k++) {
+            if (!nonSig[k][end + 1]) { ok = false; break; }
+          }
+          if (ok) end++; else break;
+        }
+        if (!intervals.some(iv => iv.start <= start && iv.end >= end)) {
+          intervals.push({ start, end });
+        }
+      }
+      const alpha = "abcdefghijklmnopqrstuvwxyz";
+      ranked.forEach(item => (item.letters = ""));
+      intervals.forEach((iv, idx) => {
+        const ch = alpha[idx] || `(${idx + 1})`;
+        for (let i = iv.start; i <= iv.end; i++) ranked[i].letters += ch;
+      });
+    }
+
+    // =========================================================================
+    // 4. MASTER RECOMPUTE & UI RENDERING
+    // =========================================================================
+    function recomputeAll() {
+      const method = document.getElementById("postHocSelect").value;
+      TRAIT_KEYS.forEach(k => {
+        allTraitResults[k] = analyzeTrait(k, method);
+      });
+
+      renderDataEntryTable();
+      renderMultiTraitSummary();
+      renderDetailedAnovaView();
+      renderAutomatedNarrative();
+
+      // Render active visible charts cleanly
+      requestAnimationFrame(() => {
+        if (activeTab === "summary") {
+          drawBarChartOnCanvas("summaryLkgBarCanvas", allTraitResults.lkg_ha);
+          drawQuadrantScatter("quadrantScatterCanvas", allTraitResults.tc_ha, allTraitResults.lkg_tc, allTraitResults.lkg_ha);
+        } else if (activeTab === "anova") {
+          const res = allTraitResults[activeTrait];
+          drawBarChartOnCanvas("detailedTraitBarCanvas", res);
+          drawResidualPlot("residualPlotCanvas", res);
+        }
+      });
+    }
+
+    function selectActiveTrait(traitKey) {
+      activeTrait = traitKey;
+      // Update pills in Tab 1
+      TRAIT_KEYS.forEach(k => {
+        const pill = document.getElementById(`traitPill_${k}`);
+        if (pill) {
+          pill.className = k === traitKey
+            ? "trait-pill px-3 py-1 rounded-lg text-xs font-bold bg-emerald-600 text-white cursor-pointer"
+            : "trait-pill px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer";
+        }
+      });
+      // Update buttons in Tab 3
+      document.querySelectorAll(".anova-trait-btn").forEach(btn => {
+        const isAct = btn.getAttribute("data-trait") === traitKey;
+        btn.className = isAct
+          ? "anova-trait-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-cane-800 text-white cursor-pointer"
+          : "anova-trait-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 cursor-pointer";
+      });
+
+      const meta = TRAIT_META[traitKey];
+      document.getElementById("activeTraitFullTitle").textContent = `${meta.label} — ${meta.desc}`;
+      document.getElementById("anovaCurrentTraitLabel").textContent = meta.label;
+
+      recomputeAll();
+    }
+
+    function switchTab(tabId) {
+      activeTab = tabId;
+      ["data", "summary", "anova", "report"].forEach(id => {
+        document.getElementById(`view_${id}`).classList.toggle("hidden", id !== tabId);
+        const btn = document.getElementById(`tabBtn_${id}`);
+        btn.className = id === tabId
+          ? "tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer bg-cane-700 text-white"
+          : "tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer text-cane-200 hover:bg-cane-800/60";
+      });
+      recomputeAll();
+    }
+
+    function renderDataEntryTable() {
+      const table = document.getElementById("dataEntryTable");
+      const res = allTraitResults[activeTrait];
+      const rawMatrix = appState.data[activeTrait];
+      const t = appState.treatments.length;
+      const r = appState.blocks.length;
+
+      const missingBadge = document.getElementById("missingPlotStatusBadge");
+      if (res.missingCells.length > 0) {
+        missingBadge.className = "font-mono font-bold text-amber-800 bg-amber-100 border border-amber-300 px-2.5 py-0.5 rounded-lg";
+        missingBadge.textContent = `${res.missingCells.length} Missing Plot(s) Estimated via Yates' Formula`;
+      } else {
+        missingBadge.className = "font-mono font-semibold text-cane-800";
+        missingBadge.textContent = `Complete RCBD (${t} Trts × ${r} Reps = ${t * r} Plots)`;
+      }
+
+      let html = `<thead>
+        <tr class="bg-cane-900 text-white text-xs">
+          <th class="py-2.5 px-3 font-sans font-bold min-w-[200px]">Treatment / Variety</th>`;
+
+      for (let j = 0; j < r; j++) {
+        html += `<th class="py-2 px-2 text-right min-w-[100px]">
+          <input type="text" value="${escapeHtml(appState.blocks[j])}" onchange="updateBlockLabel(${j}, this.value)"
+            class="w-full text-right bg-transparent text-amber-200 font-bold focus:bg-cane-800 rounded px-1 py-0.5 focus:outline-none" />
+        </th>`;
+      }
+
+      html += `
+          <th class="py-2.5 px-3 text-right bg-cane-950/70 text-emerald-200 min-w-[115px]">Trt Total (T<sub>i</sub>)</th>
+          <th class="py-2.5 px-3 text-right bg-cane-950/70 text-amber-300 min-w-[110px]">Trt Mean</th>
+        </tr>
+      </thead><tbody class="divide-y divide-slate-200">`;
+
+      for (let i = 0; i < t; i++) {
+        html += `<tr class="hover:bg-slate-50">
+          <td class="py-1.5 px-2.5 font-sans">
+            <input type="text" value="${escapeHtml(appState.treatments[i])}" onchange="updateTrtLabel(${i}, this.value)"
+              class="w-full font-semibold text-slate-800 bg-transparent px-1.5 py-1 rounded focus:bg-cane-50 focus:outline-none" />
+          </td>`;
+
+        for (let j = 0; j < r; j++) {
+          const isMissing = rawMatrix[i][j] === null || rawMatrix[i][j] === undefined || isNaN(rawMatrix[i][j]);
+          const displayVal = isMissing ? "" : rawMatrix[i][j];
+          const placeholder = isMissing ? `Est: ${res.filled[i][j].toFixed(2)}` : "";
+          const cellBg = isMissing ? "bg-amber-50/90 text-amber-800 placeholder:text-amber-700 placeholder:font-bold" : "bg-transparent text-slate-900";
+
+          html += `<td class="p-0 border-l border-slate-100">
+            <input type="text" value="${displayVal}" placeholder="${placeholder}"
+              onchange="handlePlotEdit(${i}, ${j}, this.value)"
+              title="${isMissing ? `Yates Estimated Missing Plot = ${res.filled[i][j].toFixed(3)}` : 'Enter value or NA for missing plot'}"
+              class="cell-input w-full text-right px-2.5 py-2 font-medium ${cellBg}" />
+          </td>`;
+        }
+
+        html += `
+          <td class="py-2 px-3 text-right font-semibold text-cane-900 bg-emerald-50/40">${res.trtTotals[i].toFixed(2)}</td>
+          <td class="py-2 px-3 text-right font-bold text-slate-900 bg-amber-50/30">
+            ${res.trtMeans[i].toFixed(2)} <span class="text-cane-700 text-xs">${res.letterByOrigIndex[i]}</span>
+          </td>
+        </tr>`;
+      }
+
+      html += `<tr class="bg-slate-100 font-bold border-t-2 border-slate-300">
+        <td class="py-2.5 px-3 font-sans text-cane-900">Block Total (B<sub>j</sub>)</td>`;
+      for (let j = 0; j < r; j++) {
+        html += `<td class="py-2.5 px-2.5 text-right text-cane-900">${res.blockTotals[j].toFixed(2)}</td>`;
+      }
+      html += `
+        <td class="py-2.5 px-3 text-right text-white bg-cane-900">${res.grandTotal.toFixed(2)}</td>
+        <td class="py-2.5 px-3 text-right text-amber-200 bg-cane-950">${res.grandMean.toFixed(2)}</td>
+      </tr></tbody>`;
+
+      table.innerHTML = html;
+    }
+
+    function handlePlotEdit(i, j, rawStr) {
+      const trimmed = rawStr.trim();
+      if (trimmed === "" || trimmed.toUpperCase() === "NA" || trimmed === "*") {
+        appState.data[activeTrait][i][j] = null;
+      } else {
+        const num = parseFloat(trimmed);
+        appState.data[activeTrait][i][j] = isNaN(num) ? null : num;
+      }
+      recomputeAll();
+    }
+
+    function updateTrtLabel(i, val) {
+      appState.treatments[i] = val.trim() || `Treatment ${i + 1}`;
+      recomputeAll();
+    }
+
+    function updateBlockLabel(j, val) {
+      appState.blocks[j] = val.trim() || `Block ${j + 1}`;
+      recomputeAll();
+    }
+
+    function syncLkgHaFromProduct() {
+      const t = appState.treatments.length;
+      const r = appState.blocks.length;
+      for (let i = 0; i < t; i++) {
+        for (let j = 0; j < r; j++) {
+          const tc = appState.data.tc_ha[i][j];
+          const lkgTc = appState.data.lkg_tc[i][j];
+          if (tc !== null && lkgTc !== null && !isNaN(tc) && !isNaN(lkgTc)) {
+            appState.data.lkg_ha[i][j] = Number((tc * lkgTc).toFixed(2));
+          } else {
+            appState.data.lkg_ha[i][j] = null;
+          }
+        }
+      }
+      recomputeAll();
+      showToast("Recalculated LKG/Ha = TC/Ha × LKG/TC for all plots.");
+    }
+
+    function renderMultiTraitSummary() {
+      const method = document.getElementById("postHocSelect").value;
+      document.getElementById("summaryMethodTag").textContent = `Mean Separation: ${method} (5% Level)`;
+      const tbody = document.getElementById("multiTraitSummaryBody");
+      const t = appState.treatments.length;
+
+      let html = "";
+      for (let i = 0; i < t; i++) {
+        html += `<tr class="hover:bg-slate-50">
+          <td class="py-2.5 px-3.5 font-sans font-semibold text-slate-900">${escapeHtml(appState.treatments[i])}</td>`;
+        TRAIT_KEYS.forEach(k => {
+          const rObj = allTraitResults[k];
+          const meanStr = rObj.trtMeans[i].toFixed(2);
+          const letters = rObj.letterByOrigIndex[i];
+          const highlight = k === "lkg_ha" ? "bg-amber-50/40 font-bold text-slate-900" : "text-slate-800";
+          html += `<td class="py-2.5 px-3 text-right ${highlight}">
+            ${meanStr} <span class="text-cane-800 font-bold">${letters}</span>
+          </td>`;
+        });
+        html += `</tr>`;
+      }
+
+      // Summary Rows: Grand Mean, F-Test, CV (%), Critical Value
+      html += `
+        <tr class="bg-slate-100 font-bold border-t-2 border-slate-300">
+          <td class="py-2 px-3.5 font-sans text-slate-900">Grand Mean</td>
+          ${TRAIT_KEYS.map(k => `<td class="py-2 px-3 text-right">${allTraitResults[k].grandMean.toFixed(2)}</td>`).join("")}
+        </tr>
+        <tr class="bg-slate-50 font-semibold">
+          <td class="py-2 px-3.5 font-sans text-slate-700">Treatment F-Test</td>
+          ${TRAIT_KEYS.map(k => {
+            const rObj = allTraitResults[k];
+            const color = rObj.sigTrt === "**" ? "text-emerald-700" : rObj.sigTrt === "*" ? "text-amber-700" : "text-slate-500";
+            return `<td class="py-2 px-3 text-right ${color}">${rObj.fTrt.toFixed(2)} ${rObj.sigTrt}</td>`;
+          }).join("")}
+        </tr>
+        <tr class="bg-slate-50 font-semibold">
+          <td class="py-2 px-3.5 font-sans text-slate-700">CV (%)</td>
+          ${TRAIT_KEYS.map(k => `<td class="py-2 px-3 text-right">${allTraitResults[k].cvPercent.toFixed(2)}%</td>`).join("")}
+        </tr>
+        <tr class="bg-slate-50 font-semibold">
+          <td class="py-2 px-3.5 font-sans text-slate-700">${method} (5%)</td>
+          ${TRAIT_KEYS.map(k => `<td class="py-2 px-3 text-right text-cane-800">${allTraitResults[k].criticalSingleValue.toFixed(2)}</td>`).join("")}
+        </tr>
+      `;
+      tbody.innerHTML = html;
+    }
+
+    function renderDetailedAnovaView() {
+      const res = allTraitResults[activeTrait];
+
+      // Gomez Steps
+      const steps = [
+        { label: "Grand Total (G)", sub: "Σ X_ij", val: res.grandTotal.toFixed(4) },
+        { label: "Correction Factor (C.F.)", sub: `G² / ${res.N}`, val: res.CF.toFixed(4) },
+        { label: "Uncorrected Σ X_ij²", sub: "Sum of squared observations", val: res.sumX2.toFixed(4) },
+        { label: "Total SS", sub: "Σ X_ij² − C.F.", val: res.totalSS.toFixed(4) },
+        { label: "Replication SS", sub: `(Σ B_j² / ${res.t}) − C.F.`, val: res.repSS.toFixed(4) },
+        { label: "Treatment SS", sub: res.biasCorrection > 0 ? "Adjusted for Yates bias" : `(Σ T_i² / ${res.r}) − C.F.`, val: res.trtSS.toFixed(4) },
+        { label: "Error SS", sub: "Total SS − Rep SS − Trt SS", val: res.errSS.toFixed(4) }
+      ];
+      document.getElementById("gomezStepsBox").innerHTML = steps.map(s => `
+        <div class="bg-slate-50 border border-slate-200/80 rounded-lg px-2.5 py-1.5 flex items-center justify-between gap-2">
+          <div>
+            <div class="font-semibold text-slate-800">${s.label}</div>
+            <div class="text-[10px] text-slate-500">${s.sub}</div>
+          </div>
+          <div class="font-bold text-cane-900">${s.val}</div>
+        </div>
+      `).join("");
+
+      const cvStatus = res.cvPercent <= 10 ? "Excellent Precision (≤10%)" : res.cvPercent <= 15 ? "Acceptable Precision (10–15%)" : "High Field Variability (>15%)";
+      document.getElementById("cvPrecisionBox").innerHTML = `
+        <div class="font-bold text-cane-900">CV = ${res.cvPercent.toFixed(2)}% • ${cvStatus}</div>
+        <div class="text-[11px] text-slate-600 mt-0.5">Grand Mean = ${res.grandMean.toFixed(2)} | SE(mean) = ${res.seMean.toFixed(3)}</div>
+      `;
+
+      // ANOVA Table
+      const sigBadge = (s) => s === "**"
+        ? `<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 font-bold">**</span>`
+        : s === "*"
+        ? `<span class="px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-bold">*</span>`
+        : `<span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600">ns</span>`;
+
+      document.getElementById("detailedAnovaBody").innerHTML = `
+        <tr>
+          <td class="py-2.5 px-3 font-sans font-semibold">Replication (Block)</td>
+          <td class="py-2.5 px-2 text-right">${res.dfRep}</td>
+          <td class="py-2.5 px-3 text-right">${res.repSS.toFixed(4)}</td>
+          <td class="py-2.5 px-3 text-right">${res.msRep.toFixed(4)}</td>
+          <td class="py-2.5 px-3 text-right font-semibold">${res.fRep.toFixed(2)}</td>
+          <td class="py-2.5 px-2 text-right text-slate-500">${res.fTab5Rep.toFixed(2)}</td>
+          <td class="py-2.5 px-2 text-right text-slate-500">${res.fTab1Rep.toFixed(2)}</td>
+          <td class="py-2.5 px-2 text-right">${formatP(res.pRep)}</td>
+          <td class="py-2.5 px-2 text-center">${sigBadge(res.sigRep)}</td>
+        </tr>
+        <tr class="bg-emerald-50/50">
+          <td class="py-2.5 px-3 font-sans font-bold text-cane-900">Treatment (Variety)</td>
+          <td class="py-2.5 px-2 text-right font-bold">${res.dfTrt}</td>
+          <td class="py-2.5 px-3 text-right font-bold">${res.trtSS.toFixed(4)}</td>
+          <td class="py-2.5 px-3 text-right font-bold">${res.msTrt.toFixed(4)}</td>
+          <td class="py-2.5 px-3 text-right font-bold text-cane-900">${res.fTrt.toFixed(2)}</td>
+          <td class="py-2.5 px-2 text-right">${res.fTab5Trt.toFixed(2)}</td>
+          <td class="py-2.5 px-2 text-right">${res.fTab1Trt.toFixed(2)}</td>
+          <td class="py-2.5 px-2 text-right font-semibold">${formatP(res.pTrt)}</td>
+          <td class="py-2.5 px-2 text-center">${sigBadge(res.sigTrt)}</td>
+        </tr>
+        <tr>
+          <td class="py-2.5 px-3 font-sans">Error</td>
+          <td class="py-2.5 px-2 text-right">${res.dfErr}</td>
+          <td class="py-2.5 px-3 text-right">${res.errSS.toFixed(4)}</td>
+          <td class="py-2.5 px-3 text-right font-semibold">${res.msErr.toFixed(4)}</td>
+          <td class="py-2.5 px-3 text-right text-slate-400">—</td>
+          <td class="py-2.5 px-2 text-right text-slate-400">—</td>
+          <td class="py-2.5 px-2 text-right text-slate-400">—</td>
+          <td class="py-2.5 px-2 text-right text-slate-400">—</td>
+          <td class="py-2.5 px-2 text-center text-slate-400">—</td>
+        </tr>
+        <tr class="bg-slate-100 font-bold border-t-2 border-slate-300">
+          <td class="py-2.5 px-3 font-sans">Total</td>
+          <td class="py-2.5 px-2 text-right">${res.dfTotal}</td>
+          <td class="py-2.5 px-3 text-right">${res.totalSS.toFixed(4)}</td>
+          <td class="py-2.5 px-3 text-right text-slate-400">—</td>
+          <td class="py-2.5 px-2 text-right text-slate-400">—</td>
+          <td class="py-2.5 px-2 text-right text-slate-400">—</td>
+          <td class="py-2.5 px-2 text-right text-slate-400">—</td>
+          <td class="py-2.5 px-2 text-right text-slate-400">—</td>
+          <td class="py-2.5 px-2 text-center text-slate-400">—</td>
+        </tr>
+      `;
+
+      document.getElementById("anovaSigBadge").textContent =
+        res.sigTrt === "**" ? `Highly Significant (F = ${res.fTrt.toFixed(2)}**)`
+        : res.sigTrt === "*" ? `Significant (F = ${res.fTrt.toFixed(2)}*)`
+        : `Not Significant (F = ${res.fTrt.toFixed(2)} ns)`;
+
+      const missingNoteEl = document.getElementById("anovaMissingNote");
+      if (res.missingCells.length > 0) {
+        missingNoteEl.classList.remove("hidden");
+        missingNoteEl.innerHTML = `<strong>Yates Missing-Plot Adjustment Applied:</strong> ${res.missingCells.length} missing observation(s) estimated iteratively. Error df and Total df reduced by ${res.missingCells.length}${res.biasCorrection > 0 ? `, and Treatment SS adjusted downward by bias correction = ${res.biasCorrection.toFixed(4)} (Gomez & Gomez Sec. 2.4.1)` : ""}.`;
+      } else {
+        missingNoteEl.classList.add("hidden");
+      }
+
+      // Ranked Table & Diagnostics
+      document.getElementById("criticalValueBadge").textContent = res.criticalSummary;
+      document.getElementById("detailedRankedBody").innerHTML = res.ranked.map((item, idx) => {
+        const pct = res.grandMean !== 0 ? ((item.mean / res.grandMean) * 100).toFixed(1) : "100.0";
+        return `<tr>
+          <td class="py-2 px-2.5 text-slate-500 font-bold">#${idx + 1}</td>
+          <td class="py-2 px-2.5 font-sans font-semibold text-slate-800">${escapeHtml(item.name)}</td>
+          <td class="py-2 px-2.5 text-right font-bold">${item.mean.toFixed(2)}</td>
+          <td class="py-2 px-2.5 text-center"><span class="px-2 py-0.5 rounded bg-cane-50 text-cane-900 border border-cane-200 font-bold">${item.letters}</span></td>
+          <td class="py-2 px-2.5 text-right text-slate-600">${pct}%</td>
+        </tr>`;
+      }).join("");
+
+      const d = res.diagnostics;
+      document.getElementById("assumptionDiagnosticsGrid").innerHTML = `
+        <div class="p-2.5 rounded-xl border ${d.normalityOk ? "bg-emerald-50/70 border-emerald-200" : "bg-amber-50 border-amber-200"}">
+          <div class="font-bold ${d.normalityOk ? "text-emerald-900" : "text-amber-900"}">Residual Normality</div>
+          <div class="font-mono text-[11px] mt-0.5">JB = ${d.jbStat.toFixed(2)} (${d.normalityOk ? "Normal ✓" : "Skewed ⚠"})</div>
+        </div>
+        <div class="p-2.5 rounded-xl border ${d.homoscedasticOk ? "bg-emerald-50/70 border-emerald-200" : "bg-amber-50 border-amber-200"}">
+          <div class="font-bold ${d.homoscedasticOk ? "text-emerald-900" : "text-amber-900"}">Equal Variance</div>
+          <div class="font-mono text-[11px] mt-0.5">F-max = ${d.fMax.toFixed(2)} (${d.homoscedasticOk ? "Homogeneous ✓" : "Heterogeneous ⚠"})</div>
+        </div>
+        <div class="p-2.5 rounded-xl border ${d.outliersOk ? "bg-emerald-50/70 border-emerald-200" : "bg-rose-50 border-rose-200"}">
+          <div class="font-bold ${d.outliersOk ? "text-emerald-900" : "text-rose-900"}">Outlier Screen</div>
+          <div class="font-mono text-[11px] mt-0.5">Max |z| = ${d.maxAbsStdResid.toFixed(2)} (${d.outliersOk ? "Clean ≤2.5 ✓" : "Outlier >2.5 ⚠"})</div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 5. AUTOMATED AGRONOMIC RESULTS INTERPRETATION ENGINE
+    // =========================================================================
+    function buildInterpretationParagraphs() {
+      const title = document.getElementById("metaTitle").value;
+      const loc = document.getElementById("metaLocation").value;
+      const cropSoil = document.getElementById("metaCropSoil").value;
+      const method = document.getElementById("postHocSelect").value;
+      const t = appState.treatments.length;
+      const r = appState.blocks.length;
+
+      const tc = allTraitResults.tc_ha;
+      const lkgTc = allTraitResults.lkg_tc;
+      const lkgHa = allTraitResults.lkg_ha;
+      const brix = allTraitResults.brix;
+      const pol = allTraitResults.pol;
+
+      // Paragraph 1: Experimental Design & Field Precision (CV%)
+      const sigTraits = TRAIT_KEYS.filter(k => allTraitResults[k].sigTrt !== "ns").map(k => TRAIT_META[k].short);
+      const nsTraits = TRAIT_KEYS.filter(k => allTraitResults[k].sigTrt === "ns").map(k => TRAIT_META[k].short);
+      const totalMissing = TRAIT_KEYS.reduce((acc, k) => acc + allTraitResults[k].missingCells.length, 0);
+
+      const p1 = `The field experiment titled "${title}" was conducted at ${loc} (${cropSoil}) following a Randomized Complete Block Design (RCBD) with ${t} treatments replicated ${r} times, analyzed in accordance with Kwanchai A. Gomez and Arturo A. Gomez (1984) procedures. Coefficients of variation (CV) across all measured parameters ranged from ${Math.min(...TRAIT_KEYS.map(k => allTraitResults[k].cvPercent)).toFixed(2)}% to ${Math.max(...TRAIT_KEYS.map(k => allTraitResults[k].cvPercent)).toFixed(2)}% (specifically ${tc.cvPercent.toFixed(2)}% for TC/Ha, ${lkgTc.cvPercent.toFixed(2)}% for LKG/TC, and ${lkgHa.cvPercent.toFixed(2)}% for LKG/Ha), indicating high experimental precision and uniform field management. Analysis of variance revealed statistically significant treatment differences (P ≤ 0.05) in ${sigTraits.length > 0 ? sigTraits.join(", ") : "none of the measured parameters"}${nsTraits.length > 0 ? `, whereas ${nsTraits.join(", ")} showed no significant variation among treatments (P > 0.05)` : ""}.${totalMissing > 0 ? ` Missing plot observations encountered in the dataset were statistically estimated using Yates' iterative RCBD missing-plot formula with corresponding error degrees of freedom and treatment sum of squares bias adjustments.` : ""}`;
+
+      // Paragraph 2: Cane Yield (TC/Ha)
+      const topTc = tc.ranked[0];
+      const topTcGroup = tc.ranked.filter(x => x.letters.includes("a")).map(x => `${x.name} (${x.mean.toFixed(2)} t/ha)`);
+      const tcAdv = tc.grandMean > 0 ? (((topTc.mean - tc.grandMean) / tc.grandMean) * 100).toFixed(1) : "0.0";
+      const p2 = `Cane Yield (TC/Ha): Treatment effects on cane tonnage were ${tc.sigTrt === "**" ? "highly significant (F = " + tc.fTrt.toFixed(2) + "**, P = " + formatP(tc.pTrt) + ")" : tc.sigTrt === "*" ? "significant (F = " + tc.fTrt.toFixed(2) + "*, P = " + formatP(tc.pTrt) + ")" : "not statistically significant (F = " + tc.fTrt.toFixed(2) + " ns, P = " + formatP(tc.pTrt) + ")"}, with a trial grand mean of ${tc.grandMean.toFixed(2)} t/ha. ${topTc.name} recorded the highest cane yield at ${topTc.mean.toFixed(2)} t/ha, outyielding the trial average by ${tcAdv}%. Based on ${method} at the 5% level of significance, the top-performing statistical tier sharing letter 'a' comprised ${topTcGroup.join(", ")}.`;
+
+      // Paragraph 3: Juice Quality (LKG/TC, Brix, Pol)
+      const topLkgTc = lkgTc.ranked[0];
+      const topJuiceGroup = lkgTc.ranked.filter(x => x.letters.includes("a")).map(x => `${x.name} (${x.mean.toFixed(2)} LKg/TC)`);
+      const p3 = `Rendement & Juice Quality (LKG/TC, Brix, Pol): Sugar recovery per ton of cane (LKG/TC) exhibited ${lkgTc.sigTrt === "**" ? "highly significant" : lkgTc.sigTrt === "*" ? "significant" : "non-significant"} differences among treatments (F = ${lkgTc.fTrt.toFixed(2)} ${lkgTc.sigTrt}, grand mean = ${lkgTc.grandMean.toFixed(2)} LKg/TC). ${topLkgTc.name} achieved the highest sucrose rendement at ${topLkgTc.mean.toFixed(2)} LKg/TC, statistically comparable to ${topJuiceGroup.join(", ")}. Correspondingly, Brix and Pol averaged ${brix.grandMean.toFixed(2)}% (F = ${brix.fTrt.toFixed(2)} ${brix.sigTrt}) and ${pol.grandMean.toFixed(2)}% (F = ${pol.fTrt.toFixed(2)} ${pol.sigTrt}), respectively.`;
+
+      // Paragraph 4: Total Sugar Yield (LKG/Ha) & Agronomic Recommendation
+      const topSugar = lkgHa.ranked[0];
+      const topSugarGroup = lkgHa.ranked.filter(x => x.letters.includes("a")).map(x => `${x.name} (${x.mean.toFixed(2)} LKg/ha)`);
+      const sugarAdv = lkgHa.grandMean > 0 ? (((topSugar.mean - lkgHa.grandMean) / lkgHa.grandMean) * 100).toFixed(1) : "0.0";
+      const p4 = `Total Sugar Yield (LKG/Ha) & Overall Recommendation: Combining cane tonnage and sucrose rendement, total sugar yield (LKG/Ha) differed ${lkgHa.sigTrt === "**" ? "highly significantly" : lkgHa.sigTrt === "*" ? "significantly" : "non-significantly"} across treatments (F = ${lkgHa.fTrt.toFixed(2)} ${lkgHa.sigTrt}, P = ${formatP(lkgHa.pTrt)}, grand mean = ${lkgHa.grandMean.toFixed(2)} LKg/ha). ${topSugar.name} produced the highest sugar yield at ${topSugar.mean.toFixed(2)} LKg/ha (+${sugarAdv}% above the trial mean), forming the superior statistical group alongside ${topSugarGroup.join(", ")}. Residual diagnostics confirmed model adequacy across primary yield traits, supporting the recommendation of ${topSugarGroup.map(s => s.split(" (")[0]).join(" and ")} for superior sugar productivity under comparable agro-climatic conditions.`;
+
+      return [
+        { heading: "1. Experimental Precision & Overall ANOVA Summary", text: p1 },
+        { heading: "2. Cane Tonnage Performance (TC/Ha)", text: p2 },
+        { heading: "3. Sucrose Rendement & Juice Quality (LKG/TC, Brix, Pol)", text: p3 },
+        { heading: "4. Total Sugar Yield (LKG/Ha) & Agronomic Conclusion", text: p4 }
+      ];
+    }
+
+    function renderAutomatedNarrative() {
+      document.getElementById("previewDocTitle").textContent = document.getElementById("metaTitle").value;
+      document.getElementById("previewDocSubtitle").textContent =
+        `${document.getElementById("metaLocation").value} • ${document.getElementById("metaCropSoil").value} • Researcher: ${document.getElementById("metaResearcher").value}`;
+
+      const sections = buildInterpretationParagraphs();
+      document.getElementById("narrativeInterpretationPreview").innerHTML = sections.map(sec => `
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+          <h3 class="font-bold text-cane-900 text-sm mb-1.5">${sec.heading}</h3>
+          <p class="text-slate-700 text-justify">${sec.text}</p>
+        </div>
+      `).join("");
+    }
+
+    // =========================================================================
+    // 6. HIGH-DPI CANVAS CHARTS (INTERACTIVE & EXPORTABLE AS PNG TO WORD)
+    // =========================================================================
+    function drawBarChartOnCanvas(canvasOrId, res, fixedW = null, fixedH = null) {
+      const canvas = typeof canvasOrId === "string" ? document.getElementById(canvasOrId) : canvasOrId;
+      if (!canvas || !res) return;
+
+      const dpr = fixedW ? 2 : (window.devicePixelRatio || 1);
+      const rect = canvas.parentElement ? canvas.parentElement.getBoundingClientRect() : { width: 640, height: 340 };
+      const width = fixedW || Math.max(300, rect.width);
+      const height = fixedH || Math.max(230, rect.height);
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      const ctx = canvas.getContext("2d");
+      ctx.scale(dpr, dpr);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+
+      const pad = { top: 34, right: 20, bottom: 72, left: 56 };
+      const plotW = width - pad.left - pad.right;
+      const plotH = height - pad.top - pad.bottom;
+
+      const ranked = res.ranked;
+      const maxVal = Math.max(...ranked.map(d => d.mean + res.seMean), res.grandMean, 1);
+      const yMax = maxVal * 1.18;
+
+      // Gridlines & Y-Axis
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.fillStyle = "#475569";
+      ctx.font = "11px 'IBM Plex Mono', monospace";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+
+      for (let i = 0; i <= 5; i++) {
+        const val = (yMax / 5) * i;
+        const y = pad.top + plotH - (val / yMax) * plotH;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(pad.left + plotW, y);
+        ctx.stroke();
+        ctx.fillText(val >= 10 ? val.toFixed(0) : val.toFixed(2), pad.left - 8, y);
+      }
+
+      // Y-Axis Unit Title
+      ctx.save();
+      ctx.translate(15, pad.top + plotH / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = "center";
+      ctx.font = "bold 11px 'Inter', sans-serif";
+      ctx.fillStyle = "#1e293b";
+      ctx.fillText(res.meta.label, 0, 0);
+      ctx.restore();
+
+      // Grand Mean Dashed Line
+      const yGrand = pad.top + plotH - (res.grandMean / yMax) * plotH;
+      ctx.save();
+      ctx.setLineDash([5, 4]);
+      ctx.strokeStyle = "#d97706";
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, yGrand);
+      ctx.lineTo(pad.left + plotW, yGrand);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.fillStyle = "#b45309";
+      ctx.font = "bold 10px 'IBM Plex Mono', monospace";
+      ctx.textAlign = "right";
+      ctx.fillText(`Grand Mean = ${res.grandMean.toFixed(2)}`, pad.left + plotW, yGrand - 8);
+
+      // Bars
+      const n = ranked.length;
+      const slotW = plotW / n;
+      const barW = Math.min(46, slotW * 0.56);
+
+      ranked.forEach((item, i) => {
+        const cx = pad.left + slotW * i + slotW / 2;
+        const barH = (item.mean / yMax) * plotH;
+        const yTop = pad.top + plotH - barH;
+
+        const grad = ctx.createLinearGradient(0, yTop, 0, pad.top + plotH);
+        grad.addColorStop(0, item.letters.includes("a") ? "#15803d" : "#475569");
+        grad.addColorStop(1, item.letters.includes("a") ? "#14532d" : "#334155");
+        ctx.fillStyle = grad;
+
+        ctx.beginPath();
+        ctx.roundRect(cx - barW / 2, yTop, barW, barH, [5, 5, 0, 0]);
+        ctx.fill();
+
+        // Error Bar (± SE)
+        const sePx = (res.seMean / yMax) * plotH;
+        const yErrTop = Math.max(pad.top + 8, yTop - sePx);
+        const yErrBot = Math.min(pad.top + plotH, yTop + sePx);
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(cx, yErrTop); ctx.lineTo(cx, yErrBot);
+        ctx.moveTo(cx - 5, yErrTop); ctx.lineTo(cx + 5, yErrTop);
+        ctx.moveTo(cx - 5, yErrBot); ctx.lineTo(cx + 5, yErrBot);
+        ctx.stroke();
+
+        // Value + Letter Label
+        ctx.fillStyle = "#14532d";
+        ctx.font = "bold 11px 'IBM Plex Mono', monospace";
+        ctx.textAlign = "center";
+        ctx.fillText(`${item.mean.toFixed(1)}${item.letters}`, cx, yErrTop - 9);
+
+        // X-axis Label
+        ctx.save();
+        ctx.translate(cx, pad.top + plotH + 10);
+        ctx.rotate(-0.34);
+        ctx.fillStyle = "#1e293b";
+        ctx.font = "10px 'Inter', sans-serif";
+        ctx.textAlign = "right";
+        const label = item.name.length > 18 ? item.name.slice(0, 17) + "…" : item.name;
+        ctx.fillText(label, 0, 4);
+        ctx.restore();
+      });
+    }
+
+    function drawQuadrantScatter(canvasOrId, tcRes, lkgTcRes, lkgHaRes, fixedW = null, fixedH = null) {
+      const canvas = typeof canvasOrId === "string" ? document.getElementById(canvasOrId) : canvasOrId;
+      if (!canvas || !tcRes || !lkgTcRes) return;
+
+      const dpr = fixedW ? 2 : (window.devicePixelRatio || 1);
+      const rect = canvas.parentElement ? canvas.parentElement.getBoundingClientRect() : { width: 640, height: 340 };
+      const width = fixedW || Math.max(300, rect.width);
+      const height = fixedH || Math.max(240, rect.height);
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      const ctx = canvas.getContext("2d");
+      ctx.scale(dpr, dpr);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+
+      const pad = { top: 28, right: 26, bottom: 48, left: 58 };
+      const plotW = width - pad.left - pad.right;
+      const plotH = height - pad.top - pad.bottom;
+
+      const xVals = tcRes.trtMeans;
+      const yVals = lkgTcRes.trtMeans;
+      const xMin = Math.min(...xVals) * 0.92;
+      const xMax = Math.max(...xVals) * 1.06;
+      const yMin = Math.min(...yVals) * 0.96;
+      const yMax = Math.max(...yVals) * 1.03;
+
+      const toX = v => pad.left + ((v - xMin) / Math.max(1e-6, xMax - xMin)) * plotW;
+      const toY = v => pad.top + plotH - ((v - yMin) / Math.max(1e-6, yMax - yMin)) * plotH;
+
+      // Highlight Upper-Right Elite Quadrant
+      const xMeanPx = toX(tcRes.grandMean);
+      const yMeanPx = toY(lkgTcRes.grandMean);
+      ctx.fillStyle = "rgba(22, 163, 74, 0.08)";
+      ctx.fillRect(xMeanPx, pad.top, pad.left + plotW - xMeanPx, yMeanPx - pad.top);
+
+      // Border & Quadrant Crosshairs
+      ctx.strokeStyle = "#cbd5e1";
+      ctx.strokeRect(pad.left, pad.top, plotW, plotH);
+
+      ctx.save();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = "#d97706";
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(xMeanPx, pad.top); ctx.lineTo(xMeanPx, pad.top + plotH);
+      ctx.moveTo(pad.left, yMeanPx); ctx.lineTo(pad.left + plotW, yMeanPx);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.fillStyle = "#15803d";
+      ctx.font = "bold 10px 'Inter', sans-serif";
+      ctx.textAlign = "right";
+      ctx.fillText("HIGH TONNAGE + HIGH RENDEMENT", pad.left + plotW - 6, pad.top + 14);
+
+      // Axis Ticks
+      ctx.fillStyle = "#475569";
+      ctx.font = "10px 'IBM Plex Mono', monospace";
+      ctx.textAlign = "center";
+      for (let i = 0; i <= 4; i++) {
+        const xv = xMin + ((xMax - xMin) / 4) * i;
+        ctx.fillText(xv.toFixed(1), toX(xv), pad.top + plotH + 15);
+      }
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      for (let i = 0; i <= 4; i++) {
+        const yv = yMin + ((yMax - yMin) / 4) * i;
+        ctx.fillText(yv.toFixed(2), pad.left - 8, toY(yv));
+      }
+
+      // Axis Titles
+      ctx.fillStyle = "#1e293b";
+      ctx.font = "bold 11px 'Inter', sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Cane Yield — TC/Ha", pad.left + plotW / 2, height - 10);
+
+      ctx.save();
+      ctx.translate(15, pad.top + plotH / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.fillText("Rendement — LKG/TC", 0, 0);
+      ctx.restore();
+
+      // Plot Points
+      appState.treatments.forEach((name, idx) => {
+        const px = toX(xVals[idx]);
+        const py = toY(yVals[idx]);
+        const isElite = xVals[idx] >= tcRes.grandMean && yVals[idx] >= lkgTcRes.grandMean;
+
+        ctx.beginPath();
+        ctx.arc(px, py, 7, 0, Math.PI * 2);
+        ctx.fillStyle = isElite ? "#15803d" : "#475569";
+        ctx.fill();
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = "#0f172a";
+        ctx.font = "bold 10px 'Inter', sans-serif";
+        ctx.textAlign = px > pad.left + plotW * 0.72 ? "right" : "left";
+        const offsetX = px > pad.left + plotW * 0.72 ? -10 : 10;
+        const shortName = name.replace(" (Check)", "");
+        ctx.fillText(`${shortName} (${lkgHaRes.trtMeans[idx].toFixed(0)} LKg/ha)`, px + offsetX, py - 4);
+      });
+    }
+
+    function drawResidualPlot(canvasId, res) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas || !res) return;
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.parentElement.getBoundingClientRect();
+      const width = Math.max(300, rect.width);
+      const height = Math.max(165, rect.height);
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      const ctx = canvas.getContext("2d");
+      ctx.scale(dpr, dpr);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, width, height);
+
+      const pad = { top: 16, right: 16, bottom: 28, left: 48 };
+      const plotW = width - pad.left - pad.right;
+      const plotH = height - pad.top - pad.bottom;
+
+      const xMin = Math.min(...res.fittedVals) * 0.98;
+      const xMax = Math.max(...res.fittedVals) * 1.02;
+      const maxAbsE = Math.max(...res.residuals.map(Math.abs), 0.1) * 1.25;
+
+      const toX = v => pad.left + ((v - xMin) / Math.max(1e-6, xMax - xMin)) * plotW;
+      const toY = e => pad.top + plotH / 2 - (e / maxAbsE) * (plotH / 2);
+
+      ctx.strokeStyle = "#e2e8f0";
+      ctx.strokeRect(pad.left, pad.top, plotW, plotH);
+
+      // Zero line
+      ctx.strokeStyle = "#16a34a";
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(pad.left, toY(0));
+      ctx.lineTo(pad.left + plotW, toY(0));
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      res.fittedVals.forEach((fv, idx) => {
+        ctx.beginPath();
+        ctx.arc(toX(fv), toY(res.residuals[idx]), 4, 0, Math.PI * 2);
+        ctx.fillStyle = "#1e293b";
+        ctx.fill();
+      });
+
+      ctx.fillStyle = "#64748b";
+      ctx.font = "10px 'IBM Plex Mono', monospace";
+      ctx.textAlign = "right";
+      ctx.fillText(`+${maxAbsE.toFixed(2)}`, pad.left - 5, pad.top + 8);
+      ctx.fillText("0.00", pad.left - 5, toY(0) + 3);
+      ctx.fillText(`-${maxAbsE.toFixed(2)}`, pad.left - 5, pad.top + plotH);
+      ctx.textAlign = "center";
+      ctx.fillText("Fitted Plot Values (Ŷ_ij)", pad.left + plotW / 2, height - 6);
+    }
+
+    // =========================================================================
+    // 7. ONE-CLICK EDITABLE MICROSOFT WORD (.DOCX) REPORT GENERATOR
+    // =========================================================================
+    function renderOffscreenChartPNG(drawFn, ...args) {
+      const offCanvas = document.createElement("canvas");
+      drawFn(offCanvas, ...args, 720, 380);
+      return offCanvas.toDataURL("image/png");
+    }
+
+    function dataUrlToUint8Array(dataUrl) {
+      const base64 = dataUrl.split(",")[1];
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return bytes;
+    }
+
+    async function generateWordReport() {
+      const btn = document.getElementById("exportDocxBtn");
+      const origHTML = btn.innerHTML;
+      btn.innerHTML = `<span>Generating .DOCX Report...</span>`;
+      btn.disabled = true;
+
+      try {
+        const title = document.getElementById("metaTitle").value;
+        const location = document.getElementById("metaLocation").value;
+        const researcher = document.getElementById("metaResearcher").value;
+        const cropSoil = document.getElementById("metaCropSoil").value;
+        const method = document.getElementById("postHocSelect").value;
+        const dateStr = new Date().toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" });
+        const narratives = buildInterpretationParagraphs();
+
+        // Render high-res PNG charts offscreen so they embed cleanly regardless of active tab
+        const lkgBarPng = renderOffscreenChartPNG(drawBarChartOnCanvas, allTraitResults.lkg_ha);
+        const tcBarPng = renderOffscreenChartPNG(drawBarChartOnCanvas, allTraitResults.tc_ha);
+        const quadrantPng = renderOffscreenChartPNG(drawQuadrantScatter, allTraitResults.tc_ha, allTraitResults.lkg_tc, allTraitResults.lkg_ha);
+
+        // If docx library loaded cleanly, build a genuine OpenXML .docx document
+        if (window.docx) {
+          const {
+            Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
+            WidthType, AlignmentType, HeadingLevel, BorderStyle, ShadingType, ImageRun
+          } = window.docx;
+
+          const makeCell = (text, options = {}) => {
+            const { bold = false, align = AlignmentType.LEFT, fill = null, color = "1E293B", size = 19 } = options;
+            return new TableCell({
+              shading: fill ? { type: ShadingType.CLEAR, color: "auto", fill } : undefined,
+              margins: { top: 80, bottom: 80, left: 110, right: 110 },
+              children: [
+                new Paragraph({
+                  alignment: align,
+                  children: [new TextRun({ text: String(text), bold, color, size, font: "Calibri" })]
+                })
+              ]
+            });
+          };
+
+          const docChildren = [
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 60 },
+              children: [
+                new TextRun({
+                  text: "SUGAR REGULATORY ADMINISTRATION — LUZON AGRICULTURAL RESEARCH & EXTENSION CENTER (SRA-LAREC)",
+                  bold: true, size: 22, color: "14532D", font: "Calibri"
+                })
+              ]
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 200 },
+              children: [
+                new TextRun({
+                  text: title.toUpperCase(),
+                  bold: true, size: 28, color: "0F172A", font: "Calibri"
+                })
+              ]
+            }),
+
+            // Metadata Table
+            new Table({
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              rows: [
+                new TableRow({
+                  children: [
+                    makeCell("Station / Location:", { bold: true, fill: "F1F5F9" }),
+                    makeCell(location),
+                    makeCell("Date Generated:", { bold: true, fill: "F1F5F9" }),
+                    makeCell(dateStr)
+                  ]
+                }),
+                new TableRow({
+                  children: [
+                    makeCell("Researcher:", { bold: true, fill: "F1F5F9" }),
+                    makeCell(researcher),
+                    makeCell("Crop Class & Soil:", { bold: true, fill: "F1F5F9" }),
+                    makeCell(cropSoil)
+                  ]
+                }),
+                new TableRow({
+                  children: [
+                    makeCell("Experimental Design:", { bold: true, fill: "F1F5F9" }),
+                    makeCell(`RCBD (${appState.treatments.length} Treatments × ${appState.blocks.length} Replications)`),
+                    makeCell("Statistical Method:", { bold: true, fill: "F1F5F9" }),
+                    makeCell(`Gomez & Gomez (1984) • ${method} (5%)`)
+                  ]
+                })
+              ]
+            }),
+
+            new Paragraph({ text: "", spacing: { after: 160 } }),
+            new Paragraph({
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 120, after: 100 },
+              children: [new TextRun({ text: "I. AGRONOMIC RESULTS & STATISTICAL INTERPRETATION", bold: true, size: 24, color: "14532D", font: "Calibri" })]
+            })
+          ];
+
+          narratives.forEach(sec => {
+            docChildren.push(
+              new Paragraph({
+                spacing: { before: 100, after: 40 },
+                children: [new TextRun({ text: sec.heading, bold: true, size: 21, color: "166534", font: "Calibri" })]
+              }),
+              new Paragraph({
+                alignment: AlignmentType.JUSTIFIED,
+                spacing: { after: 120 },
+                children: [new TextRun({ text: sec.text, size: 21, color: "1E293B", font: "Calibri" })]
+              })
+            );
+          });
+
+          // Table 1: Multi-Trait Summary
+          docChildren.push(
+            new Paragraph({
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 180, after: 80 },
+              children: [new TextRun({ text: "II. COMBINED MULTI-TRAIT AGRONOMIC PERFORMANCE SUMMARY", bold: true, size: 24, color: "14532D", font: "Calibri" })]
+            }),
+            new Paragraph({
+              spacing: { after: 80 },
+              children: [new TextRun({ text: `Table 1. Mean Cane Yield (TC/Ha), Rendement (LKG/TC), Sugar Yield (LKG/Ha), Brix (%), and Pol (%) with ${method} (5%) letter groupings.`, bold: true, size: 20, font: "Calibri" })]
+            })
+          );
+
+          const summaryRows = [
+            new TableRow({
+              tableHeader: true,
+              children: [
+                makeCell("Treatment / Variety", { bold: true, fill: "14532D", color: "FFFFFF" }),
+                makeCell("TC/Ha", { bold: true, align: AlignmentType.RIGHT, fill: "14532D", color: "FFFFFF" }),
+                makeCell("LKG/TC", { bold: true, align: AlignmentType.RIGHT, fill: "14532D", color: "FFFFFF" }),
+                makeCell("LKG/Ha", { bold: true, align: AlignmentType.RIGHT, fill: "052E16", color: "FDE047" }),
+                makeCell("Brix (%)", { bold: true, align: AlignmentType.RIGHT, fill: "14532D", color: "FFFFFF" }),
+                makeCell("Pol (%)", { bold: true, align: AlignmentType.RIGHT, fill: "14532D", color: "FFFFFF" })
+              ]
+            })
+          ];
+
+          appState.treatments.forEach((trt, i) => {
+            summaryRows.push(new TableRow({
+              children: [
+                makeCell(trt, { bold: true }),
+                ...TRAIT_KEYS.map(k => {
+                  const rObj = allTraitResults[k];
+                  return makeCell(`${rObj.trtMeans[i].toFixed(2)} ${rObj.letterByOrigIndex[i]}`, {
+                    align: AlignmentType.RIGHT,
+                    bold: k === "lkg_ha"
+                  });
+                })
+              ]
+            }));
+          });
+
+          summaryRows.push(
+            new TableRow({
+              children: [
+                makeCell("Grand Mean", { bold: true, fill: "F1F5F9" }),
+                ...TRAIT_KEYS.map(k => makeCell(allTraitResults[k].grandMean.toFixed(2), { bold: true, align: AlignmentType.RIGHT, fill: "F1F5F9" }))
+              ]
+            }),
+            new TableRow({
+              children: [
+                makeCell("Treatment F-Test", { bold: true, fill: "F8FAFC" }),
+                ...TRAIT_KEYS.map(k => makeCell(`${allTraitResults[k].fTrt.toFixed(2)} ${allTraitResults[k].sigTrt}`, { bold: true, align: AlignmentType.RIGHT, fill: "F8FAFC" }))
+              ]
+            }),
+            new TableRow({
+              children: [
+                makeCell("CV (%)", { bold: true, fill: "F8FAFC" }),
+                ...TRAIT_KEYS.map(k => makeCell(`${allTraitResults[k].cvPercent.toFixed(2)}%`, { align: AlignmentType.RIGHT, fill: "F8FAFC" }))
+              ]
+            }),
+            new TableRow({
+              children: [
+                makeCell(`${method} (5%)`, { bold: true, fill: "F8FAFC" }),
+                ...TRAIT_KEYS.map(k => makeCell(allTraitResults[k].criticalSingleValue.toFixed(2), { align: AlignmentType.RIGHT, fill: "F8FAFC" }))
+              ]
+            })
+          );
+
+          docChildren.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: summaryRows }));
+
+          // Embedded High-Resolution Charts
+          docChildren.push(
+            new Paragraph({
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 220, after: 80 },
+              children: [new TextRun({ text: "III. GRAPHICAL YIELD & PRODUCTIVITY FIGURES", bold: true, size: 24, color: "14532D", font: "Calibri" })]
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 80, after: 40 },
+              children: [
+                new ImageRun({
+                  data: dataUrlToUint8Array(lkgBarPng),
+                  transformation: { width: 540, height: 285 }
+                })
+              ]
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 140 },
+              children: [new TextRun({ text: `Figure 1. Total Sugar Yield (LKG/Ha) Means ± SE with ${method} (5%) Significance Groupings.`, italics: true, size: 18, color: "475569", font: "Calibri" })]
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 80, after: 40 },
+              children: [
+                new ImageRun({
+                  data: dataUrlToUint8Array(tcBarPng),
+                  transformation: { width: 540, height: 285 }
+                })
+              ]
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 140 },
+              children: [new TextRun({ text: `Figure 2. Cane Yield (TC/Ha) Means ± SE with ${method} (5%) Significance Groupings.`, italics: true, size: 18, color: "475569", font: "Calibri" })]
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 80, after: 40 },
+              children: [
+                new ImageRun({
+                  data: dataUrlToUint8Array(quadrantPng),
+                  transformation: { width: 540, height: 285 }
+                })
+              ]
+            }),
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { after: 160 },
+              children: [new TextRun({ text: "Figure 3. Sugarcane Productivity Quadrant Plot (Cane Yield TC/Ha vs. Sucrose Rendement LKG/TC).", italics: true, size: 18, color: "475569", font: "Calibri" })]
+            })
+          );
+
+          // Section IV: Complete Trait-by-Trait ANOVA & Data Tables (Gomez & Gomez Format)
+          docChildren.push(
+            new Paragraph({
+              heading: HeadingLevel.HEADING_1,
+              spacing: { before: 220, after: 100 },
+              children: [new TextRun({ text: "IV. COMPLETE TRAIT-BY-TRAIT DATA MATRICES & RCBD ANOVA TABLES", bold: true, size: 24, color: "14532D", font: "Calibri" })]
+            })
+          );
+
+          TRAIT_KEYS.forEach((k, idx) => {
+            const rObj = allTraitResults[k];
+            docChildren.push(
+              new Paragraph({
+                spacing: { before: 160, after: 60 },
+                children: [new TextRun({ text: `Table ${idx + 2}A. Plot Observations, Block Totals, and Treatment Means — ${rObj.meta.label}`, bold: true, size: 20, color: "166534", font: "Calibri" })]
+              })
+            );
+
+            const dataRows = [
+              new TableRow({
+                tableHeader: true,
+                children: [
+                  makeCell("Treatment / Variety", { bold: true, fill: "E2E8F0" }),
+                  ...appState.blocks.map(b => makeCell(b, { bold: true, align: AlignmentType.RIGHT, fill: "E2E8F0" })),
+                  makeCell("Trt Total", { bold: true, align: AlignmentType.RIGHT, fill: "E2E8F0" }),
+                  makeCell("Trt Mean", { bold: true, align: AlignmentType.RIGHT, fill: "E2E8F0" })
+                ]
+              })
+            ];
+
+            appState.treatments.forEach((trt, i) => {
+              dataRows.push(new TableRow({
+                children: [
+                  makeCell(trt),
+                  ...appState.blocks.map((_, j) => {
+                    const isMiss = rObj.missingCells.some(mc => mc.i === i && mc.j === j);
+                    const valTxt = `${rObj.filled[i][j].toFixed(2)}${isMiss ? "*" : ""}`;
+                    return makeCell(valTxt, { align: AlignmentType.RIGHT, bold: isMiss });
+                  }),
+                  makeCell(rObj.trtTotals[i].toFixed(2), { align: AlignmentType.RIGHT, bold: true }),
+                  makeCell(`${rObj.trtMeans[i].toFixed(2)} ${rObj.letterByOrigIndex[i]}`, { align: AlignmentType.RIGHT, bold: true })
+                ]
+              }));
+            });
+
+            dataRows.push(new TableRow({
+              children: [
+                makeCell("Block Total", { bold: true, fill: "F1F5F9" }),
+                ...rObj.blockTotals.map(bt => makeCell(bt.toFixed(2), { bold: true, align: AlignmentType.RIGHT, fill: "F1F5F9" })),
+                makeCell(rObj.grandTotal.toFixed(2), { bold: true, align: AlignmentType.RIGHT, fill: "F1F5F9" }),
+                makeCell(rObj.grandMean.toFixed(2), { bold: true, align: AlignmentType.RIGHT, fill: "F1F5F9" })
+              ]
+            }));
+
+            docChildren.push(
+              new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: dataRows }),
+              new Paragraph({
+                spacing: { before: 100, after: 40 },
+                children: [new TextRun({ text: `Table ${idx + 2}B. Analysis of Variance (RCBD ANOVA) — ${rObj.meta.label} (C.F. = ${rObj.CF.toFixed(4)}, CV = ${rObj.cvPercent.toFixed(2)}%)`, bold: true, size: 20, color: "166534", font: "Calibri" })]
+              }),
+              new Table({
+                width: { size: 100, type: WidthType.PERCENTAGE },
+                rows: [
+                  new TableRow({
+                    tableHeader: true,
+                    children: [
+                      makeCell("Source of Variation", { bold: true, fill: "14532D", color: "FFFFFF" }),
+                      makeCell("df", { bold: true, align: AlignmentType.RIGHT, fill: "14532D", color: "FFFFFF" }),
+                      makeCell("SS", { bold: true, align: AlignmentType.RIGHT, fill: "14532D", color: "FFFFFF" }),
+                      makeCell("MS", { bold: true, align: AlignmentType.RIGHT, fill: "14532D", color: "FFFFFF" }),
+                      makeCell("Computed F", { bold: true, align: AlignmentType.RIGHT, fill: "14532D", color: "FFFFFF" }),
+                      makeCell("F-tab 5%", { bold: true, align: AlignmentType.RIGHT, fill: "14532D", color: "FFFFFF" }),
+                      makeCell("F-tab 1%", { bold: true, align: AlignmentType.RIGHT, fill: "14532D", color: "FFFFFF" }),
+                      makeCell("P-value", { bold: true, align: AlignmentType.RIGHT, fill: "14532D", color: "FFFFFF" }),
+                      makeCell("Sig.", { bold: true, align: AlignmentType.CENTER, fill: "14532D", color: "FFFFFF" })
+                    ]
+                  }),
+                  new TableRow({
+                    children: [
+                      makeCell("Replication (Block)"),
+                      makeCell(rObj.dfRep, { align: AlignmentType.RIGHT }),
+                      makeCell(rObj.repSS.toFixed(4), { align: AlignmentType.RIGHT }),
+                      makeCell(rObj.msRep.toFixed(4), { align: AlignmentType.RIGHT }),
+                      makeCell(rObj.fRep.toFixed(2), { align: AlignmentType.RIGHT }),
+                      makeCell(rObj.fTab5Rep.toFixed(2), { align: AlignmentType.RIGHT }),
+                      makeCell(rObj.fTab1Rep.toFixed(2), { align: AlignmentType.RIGHT }),
+                      makeCell(formatP(rObj.pRep), { align: AlignmentType.RIGHT }),
+                      makeCell(rObj.sigRep, { align: AlignmentType.CENTER })
+                    ]
+                  }),
+                  new TableRow({
+                    children: [
+                      makeCell("Treatment (Variety)", { bold: true, fill: "F0FDF4" }),
+                      makeCell(rObj.dfTrt, { bold: true, align: AlignmentType.RIGHT, fill: "F0FDF4" }),
+                      makeCell(rObj.trtSS.toFixed(4), { bold: true, align: AlignmentType.RIGHT, fill: "F0FDF4" }),
+                      makeCell(rObj.msTrt.toFixed(4), { bold: true, align: AlignmentType.RIGHT, fill: "F0FDF4" }),
+                      makeCell(rObj.fTrt.toFixed(2), { bold: true, align: AlignmentType.RIGHT, fill: "F0FDF4" }),
+                      makeCell(rObj.fTab5Trt.toFixed(2), { align: AlignmentType.RIGHT, fill: "F0FDF4" }),
+                      makeCell(rObj.fTab1Trt.toFixed(2), { align: AlignmentType.RIGHT, fill: "F0FDF4" }),
+                      makeCell(formatP(rObj.pTrt), { bold: true, align: AlignmentType.RIGHT, fill: "F0FDF4" }),
+                      makeCell(rObj.sigTrt, { bold: true, align: AlignmentType.CENTER, fill: "F0FDF4" })
+                    ]
+                  }),
+                  new TableRow({
+                    children: [
+                      makeCell("Error"),
+                      makeCell(rObj.dfErr, { align: AlignmentType.RIGHT }),
+                      makeCell(rObj.errSS.toFixed(4), { align: AlignmentType.RIGHT }),
+                      makeCell(rObj.msErr.toFixed(4), { align: AlignmentType.RIGHT }),
+                      makeCell("—", { align: AlignmentType.RIGHT }),
+                      makeCell("—", { align: AlignmentType.RIGHT }),
+                      makeCell("—", { align: AlignmentType.RIGHT }),
+                      makeCell("—", { align: AlignmentType.RIGHT }),
+                      makeCell("—", { align: AlignmentType.CENTER })
+                    ]
+                  }),
+                  new TableRow({
+                    children: [
+                      makeCell("Total", { bold: true, fill: "F1F5F9" }),
+                      makeCell(rObj.dfTotal, { bold: true, align: AlignmentType.RIGHT, fill: "F1F5F9" }),
+                      makeCell(rObj.totalSS.toFixed(4), { bold: true, align: AlignmentType.RIGHT, fill: "F1F5F9" }),
+                      makeCell("—", { align: AlignmentType.RIGHT, fill: "F1F5F9" }),
+                      makeCell("—", { align: AlignmentType.RIGHT, fill: "F1F5F9" }),
+                      makeCell("—", { align: AlignmentType.RIGHT, fill: "F1F5F9" }),
+                      makeCell("—", { align: AlignmentType.RIGHT, fill: "F1F5F9" }),
+                      makeCell("—", { align: AlignmentType.RIGHT, fill: "F1F5F9" }),
+                      makeCell("—", { align: AlignmentType.CENTER, fill: "F1F5F9" })
+                    ]
+                  })
+                ]
+              })
+            );
+          });
+
+          docChildren.push(
+            new Paragraph({
+              spacing: { before: 200 },
+              children: [
+                new TextRun({
+                  text: "Statistical Reference: Gomez, K.A. & Gomez, A.A. (1984). Statistical Procedures for Agricultural Research (2nd ed.). John Wiley & Sons / International Rice Research Institute (IRRI).",
+                  italics: true, size: 18, color: "64748B", font: "Calibri"
+                })
+              ]
+            })
+          );
+
+          const doc = new Document({
+            sections: [{
+              properties: { page: { margin: { top: 720, right: 720, bottom: 720, left: 720 } } },
+              children: docChildren
+            }]
+          });
+
+          const blob = await Packer.toBlob(doc);
+          triggerDownload(blob, "SRA_LAREC_RCBD_Statistical_Report.docx");
+          showToast("Downloaded editable Word report: SRA_LAREC_RCBD_Statistical_Report.docx");
+        } else {
+          // Offline fallback Word-compatible HTML document
+          const htmlFallback = `<html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title></head><body><h1>${escapeHtml(title)}</h1>${narratives.map(n => `<h3>${n.heading}</h3><p>${n.text}</p>`).join("")}</body></html>`;
+          const blob = new Blob([htmlFallback], { type: "application/msword" });
+          triggerDownload(blob, "SRA_LAREC_RCBD_Statistical_Report.doc");
+          showToast("Downloaded Word-compatible report.");
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Error generating Word report: " + err.message);
+      } finally {
+        btn.innerHTML = origHTML;
+        btn.disabled = false;
+      }
+    }
+
+    function triggerDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // =========================================================================
+    // 8. GRID OPERATIONS, PRESETS, CSV EXPORT & UTILITIES
+    // =========================================================================
+    function loadPresetDataset(key) {
+      if (!PRESET_DATASETS[key]) return;
+      appState = JSON.parse(JSON.stringify(PRESET_DATASETS[key]));
+      document.getElementById("metaTitle").value = appState.title;
+      document.getElementById("metaLocation").value = appState.location;
+      document.getElementById("metaResearcher").value = appState.researcher;
+      document.getElementById("metaCropSoil").value = appState.cropSoil;
+      recomputeAll();
+      showToast(`Loaded dataset: ${appState.title.slice(0, 48)}...`);
+    }
+
+    function addTreatment() {
+      const idx = appState.treatments.length + 1;
+      appState.treatments.push(`New Entry ${idx}`);
+      TRAIT_KEYS.forEach(k => {
+        const gm = allTraitResults[k] ? Number(allTraitResults[k].grandMean.toFixed(2)) : 100;
+        appState.data[k].push(appState.blocks.map(() => gm));
+      });
+      recomputeAll();
+      showToast(`Added Treatment ${idx} across all 5 traits.`);
+    }
+
+    function removeTreatment() {
+      if (appState.treatments.length <= 2) {
+        showToast("At least 2 treatments are required for RCBD ANOVA.");
+        return;
+      }
+      appState.treatments.pop();
+      TRAIT_KEYS.forEach(k => appState.data[k].pop());
+      recomputeAll();
+      showToast("Removed last treatment row.");
+    }
+
+    function addBlock() {
+      const idx = appState.blocks.length + 1;
+      const roman = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][idx - 1] || idx;
+      appState.blocks.push(`Block ${roman}`);
+      TRAIT_KEYS.forEach(k => {
+        appState.data[k].forEach((row, rIdx) => {
+          const avg = allTraitResults[k] ? Number(allTraitResults[k].trtMeans[rIdx].toFixed(2)) : 0;
+          row.push(avg);
+        });
+      });
+      recomputeAll();
+      showToast(`Added Replication ${roman} across all 5 traits.`);
+    }
+
+    function removeBlock() {
+      if (appState.blocks.length <= 2) {
+        showToast("At least 2 replications/blocks are required.");
+        return;
+      }
+      appState.blocks.pop();
+      TRAIT_KEYS.forEach(k => appState.data[k].forEach(row => row.pop()));
+      recomputeAll();
+      showToast("Removed last replication column.");
+    }
+
+    function openPasteModal() {
+      document.getElementById("pasteModalTraitName").textContent = TRAIT_META[activeTrait].label;
+      const m = document.getElementById("pasteModal");
+      m.classList.remove("hidden");
+      m.classList.add("flex");
+    }
+
+    function closePasteModal() {
+      const m = document.getElementById("pasteModal");
+      m.classList.add("hidden");
+      m.classList.remove("flex");
+    }
+
+    function applyPastedData() {
+      const raw = document.getElementById("pasteTextarea").value.trim();
+      if (!raw) { closePasteModal(); return; }
+      const lines = raw.split(/\r?\n/).filter(l => l.trim().length > 0);
+      const rows = [];
+      let cols = 0;
+
+      lines.forEach((line, idx) => {
+        const parts = (line.includes("\t") ? line.split("\t") : line.split(",")).map(s => s.trim());
+        if (parts.length < 3) return;
+        if (idx === 0 && isNaN(parseFloat(parts[1])) && parts[1].toUpperCase() !== "NA") {
+          appState.blocks = parts.slice(1);
+          return;
+        }
+        const name = parts[0];
+        const vals = parts.slice(1).map(v => (v === "" || v.toUpperCase() === "NA" || v === "*" || isNaN(parseFloat(v))) ? null : parseFloat(v));
+        cols = Math.max(cols, vals.length);
+        rows.push({ name, vals });
+      });
+
+      if (rows.length >= 2 && cols >= 2) {
+        while (appState.blocks.length < cols) appState.blocks.push(`Block ${appState.blocks.length + 1}`);
+        appState.blocks = appState.blocks.slice(0, cols);
+        appState.treatments = rows.map(r => r.name);
+        appState.data[activeTrait] = rows.map(r => {
+          const arr = r.vals.slice(0, cols);
+          while (arr.length < cols) arr.push(null);
+          return arr;
+        });
+        // Resize other traits cleanly to match new t x r
+        TRAIT_KEYS.forEach(k => {
+          if (k === activeTrait) return;
+          appState.data[k] = Array.from({ length: rows.length }, (_, i) =>
+            Array.from({ length: cols }, (_, j) => (appState.data[k][i] && appState.data[k][i][j] !== undefined) ? appState.data[k][i][j] : 0)
+          );
+        });
+        recomputeAll();
+        closePasteModal();
+        showToast(`Imported ${rows.length} treatments × ${cols} reps into ${TRAIT_META[activeTrait].short}.`);
+      } else {
+        showToast("Please paste at least 2 treatments and 2 replication columns.");
+      }
+    }
+
+    function exportCSVAllTraits() {
+      const lines = [
+        ["SRA-LAREC Multi-Trait RCBD Summary"],
+        ["Title", document.getElementById("metaTitle").value],
+        [],
+        ["Treatment", "TC/Ha", "LKG/TC", "LKG/Ha", "Brix (%)", "Pol (%)"]
+      ];
+      appState.treatments.forEach((trt, i) => {
+        lines.push([
+          trt,
+          ...TRAIT_KEYS.map(k => `${allTraitResults[k].trtMeans[i].toFixed(2)} ${allTraitResults[k].letterByOrigIndex[i]}`)
+        ]);
+      });
+      const csv = lines.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+      triggerDownload(new Blob([csv], { type: "text/csv;charset=utf-8;" }), "SRA_LAREC_MultiTrait_Summary.csv");
+      showToast("Downloaded SRA_LAREC_MultiTrait_Summary.csv");
+    }
+
+    function formatP(p) {
+      if (isNaN(p)) return "—";
+      return p < 0.0001 ? "< 0.0001" : p.toFixed(4);
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const el = document.getElementById("toastBanner");
+      document.getElementById("toastMessage").textContent = msg;
+      el.classList.remove("hidden");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.classList.add("hidden"), 3200);
+    }
+
+    window.addEventListener("resize", () => recomputeAll());
+
+    window.onload = function () {
+      document.getElementById("metaTitle").value = appState.title;
+      document.getElementById("metaLocation").value = appState.location;
+      document.getElementById("metaResearcher").value = appState.researcher;
+      document.getElementById("metaCropSoil").value = appState.cropSoil;
+      recomputeAll();
+    };
+  </script>
+</body>
+</html>
