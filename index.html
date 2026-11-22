@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="VelocityVibe Systems (https://velocityvibesystems.vercel.app/)" />
   <title>Sugarcane Biometric RCBD Statistical Workstation (STAR / agricolae / Gomez &amp; Gomez)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- docx.js for genuine client-side Microsoft Word (.docx) generation -->
@@ -71,6 +72,10 @@
       </div>
 
       <div class="flex items-center gap-2 no-print">
+        <a href="https://sugarcane-rcbd-workstation.vercel.app/" target="_blank" rel="noopener noreferrer"
+          class="px-3 py-2 rounded-xl text-xs font-semibold bg-cane-950/70 hover:bg-cane-800 text-emerald-200 border border-emerald-500/40 transition">
+          Live App &#8599;
+        </a>
         <button onclick="exportCSVAllTraits()"
           class="px-3 py-2 rounded-xl text-xs font-semibold bg-cane-800 hover:bg-cane-700 text-white border border-cane-600/70 transition cursor-pointer">
           Export CSV
@@ -198,7 +203,7 @@
               + Treatment
             </button>
             <button onclick="removeTreatment()"
-              class="px-2 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 cursor-pointer">
+              class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 cursor-pointer">
               − Trt
             </button>
             <button onclick="addBlock()"
@@ -206,7 +211,7 @@
               + Rep
             </button>
             <button onclick="removeBlock()"
-              class="px-2 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 cursor-pointer">
+              class="px-2.5 py-1 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 cursor-pointer">
               − Rep
             </button>
           </div>
@@ -799,17 +804,14 @@
         for (let iter = 0; iter < maxIter; iter++) {
           let maxDelta = 0;
           for (const mc of missingCells) {
-            // B = sum of known/current values in block mc.j EXCLUDING cell (mc.i, mc.j)
             let B_excl = 0;
             for (let ii = 0; ii < t; ii++) {
               if (ii !== mc.i) B_excl += filled[ii][mc.j];
             }
-            // T = sum of known/current values in treatment mc.i EXCLUDING cell (mc.i, mc.j)
             let T_excl = 0;
             for (let jj = 0; jj < r; jj++) {
               if (jj !== mc.j) T_excl += filled[mc.i][jj];
             }
-            // G = sum of all cells EXCLUDING cell (mc.i, mc.j)
             let G_excl = 0;
             for (let ii = 0; ii < t; ii++) {
               for (let jj = 0; jj < r; jj++) {
@@ -935,7 +937,7 @@
       const letterByOrigIndex = new Array(t).fill("");
       ranked.forEach(item => { letterByOrigIndex[item.index] = item.letters; });
 
-      // Residual Diagnostics (y_hat_ij = TrtMean_i + BlockMean_j - GrandMean)
+      // Residual Diagnostics
       const residuals = [];
       const fittedVals = [];
       let maxAbsStdResid = 0;
@@ -958,14 +960,12 @@
         if (sigmaHat > 0) maxAbsStdResid = Math.max(maxAbsStdResid, Math.abs(e / sigmaHat));
       });
 
-      // Jarque-Bera Normality Statistic
       m2 /= nObs; m3 /= nObs; m4 /= nObs;
       const skewness = m2 > 0 ? m3 / Math.pow(m2, 1.5) : 0;
       const kurtosis = m2 > 0 ? m4 / (m2 * m2) : 3;
       const jbStat = (nObs / 6.0) * (skewness * skewness + 0.25 * Math.pow(kurtosis - 3, 2));
-      const normalityOk = jbStat < 5.99; // Chi-sq(2) 5% critical value
+      const normalityOk = jbStat < 5.99;
 
-      // Treatment Variance Ratio (Hartley F-max check for homoscedasticity)
       const trtVars = [];
       for (let i = 0; i < t; i++) {
         let s = 0;
@@ -1061,7 +1061,6 @@
       renderDetailedAnovaView();
       renderAutomatedNarrative();
 
-      // Render active visible charts cleanly
       requestAnimationFrame(() => {
         if (activeTab === "summary") {
           drawBarChartOnCanvas("summaryLkgBarCanvas", allTraitResults.lkg_ha);
@@ -1076,7 +1075,6 @@
 
     function selectActiveTrait(traitKey) {
       activeTrait = traitKey;
-      // Update pills in Tab 1
       TRAIT_KEYS.forEach(k => {
         const pill = document.getElementById(`traitPill_${k}`);
         if (pill) {
@@ -1085,7 +1083,6 @@
             : "trait-pill px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 cursor-pointer";
         }
       });
-      // Update buttons in Tab 3
       document.querySelectorAll(".anova-trait-btn").forEach(btn => {
         const isAct = btn.getAttribute("data-trait") === traitKey;
         btn.className = isAct
@@ -1248,7 +1245,6 @@
         html += `</tr>`;
       }
 
-      // Summary Rows: Grand Mean, F-Test, CV (%), Critical Value
       html += `
         <tr class="bg-slate-100 font-bold border-t-2 border-slate-300">
           <td class="py-2 px-3.5 font-sans text-slate-900">Grand Mean</td>
@@ -1277,7 +1273,6 @@
     function renderDetailedAnovaView() {
       const res = allTraitResults[activeTrait];
 
-      // Gomez Steps
       const steps = [
         { label: "Grand Total (G)", sub: "Σ X_ij", val: res.grandTotal.toFixed(4) },
         { label: "Correction Factor (C.F.)", sub: `G² / ${res.N}`, val: res.CF.toFixed(4) },
@@ -1303,7 +1298,6 @@
         <div class="text-[11px] text-slate-600 mt-0.5">Grand Mean = ${res.grandMean.toFixed(2)} | SE(mean) = ${res.seMean.toFixed(3)}</div>
       `;
 
-      // ANOVA Table
       const sigBadge = (s) => s === "**"
         ? `<span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-900 font-bold">**</span>`
         : s === "*"
@@ -1349,7 +1343,7 @@
           <td class="py-2.5 px-2 text-right">${res.dfTotal}</td>
           <td class="py-2.5 px-3 text-right">${res.totalSS.toFixed(4)}</td>
           <td class="py-2.5 px-3 text-right text-slate-400">—</td>
-          <td class="py-2.5 px-2 text-right text-slate-400">—</td>
+          <td class="py-2.5 px-3 text-right text-slate-400">—</td>
           <td class="py-2.5 px-2 text-right text-slate-400">—</td>
           <td class="py-2.5 px-2 text-right text-slate-400">—</td>
           <td class="py-2.5 px-2 text-right text-slate-400">—</td>
@@ -1370,7 +1364,6 @@
         missingNoteEl.classList.add("hidden");
       }
 
-      // Ranked Table & Diagnostics
       document.getElementById("criticalValueBadge").textContent = res.criticalSummary;
       document.getElementById("detailedRankedBody").innerHTML = res.ranked.map((item, idx) => {
         const pct = res.grandMean !== 0 ? ((item.mean / res.grandMean) * 100).toFixed(1) : "100.0";
@@ -1417,25 +1410,21 @@
       const brix = allTraitResults.brix;
       const pol = allTraitResults.pol;
 
-      // Paragraph 1: Experimental Design & Field Precision (CV%)
       const sigTraits = TRAIT_KEYS.filter(k => allTraitResults[k].sigTrt !== "ns").map(k => TRAIT_META[k].short);
       const nsTraits = TRAIT_KEYS.filter(k => allTraitResults[k].sigTrt === "ns").map(k => TRAIT_META[k].short);
       const totalMissing = TRAIT_KEYS.reduce((acc, k) => acc + allTraitResults[k].missingCells.length, 0);
 
       const p1 = `The field experiment titled "${title}" was conducted at ${loc} (${cropSoil}) following a Randomized Complete Block Design (RCBD) with ${t} treatments replicated ${r} times, analyzed in accordance with Kwanchai A. Gomez and Arturo A. Gomez (1984) procedures. Coefficients of variation (CV) across all measured parameters ranged from ${Math.min(...TRAIT_KEYS.map(k => allTraitResults[k].cvPercent)).toFixed(2)}% to ${Math.max(...TRAIT_KEYS.map(k => allTraitResults[k].cvPercent)).toFixed(2)}% (specifically ${tc.cvPercent.toFixed(2)}% for TC/Ha, ${lkgTc.cvPercent.toFixed(2)}% for LKG/TC, and ${lkgHa.cvPercent.toFixed(2)}% for LKG/Ha), indicating high experimental precision and uniform field management. Analysis of variance revealed statistically significant treatment differences (P ≤ 0.05) in ${sigTraits.length > 0 ? sigTraits.join(", ") : "none of the measured parameters"}${nsTraits.length > 0 ? `, whereas ${nsTraits.join(", ")} showed no significant variation among treatments (P > 0.05)` : ""}.${totalMissing > 0 ? ` Missing plot observations encountered in the dataset were statistically estimated using Yates' iterative RCBD missing-plot formula with corresponding error degrees of freedom and treatment sum of squares bias adjustments.` : ""}`;
 
-      // Paragraph 2: Cane Yield (TC/Ha)
       const topTc = tc.ranked[0];
       const topTcGroup = tc.ranked.filter(x => x.letters.includes("a")).map(x => `${x.name} (${x.mean.toFixed(2)} t/ha)`);
       const tcAdv = tc.grandMean > 0 ? (((topTc.mean - tc.grandMean) / tc.grandMean) * 100).toFixed(1) : "0.0";
       const p2 = `Cane Yield (TC/Ha): Treatment effects on cane tonnage were ${tc.sigTrt === "**" ? "highly significant (F = " + tc.fTrt.toFixed(2) + "**, P = " + formatP(tc.pTrt) + ")" : tc.sigTrt === "*" ? "significant (F = " + tc.fTrt.toFixed(2) + "*, P = " + formatP(tc.pTrt) + ")" : "not statistically significant (F = " + tc.fTrt.toFixed(2) + " ns, P = " + formatP(tc.pTrt) + ")"}, with a trial grand mean of ${tc.grandMean.toFixed(2)} t/ha. ${topTc.name} recorded the highest cane yield at ${topTc.mean.toFixed(2)} t/ha, outyielding the trial average by ${tcAdv}%. Based on ${method} at the 5% level of significance, the top-performing statistical tier sharing letter 'a' comprised ${topTcGroup.join(", ")}.`;
 
-      // Paragraph 3: Juice Quality (LKG/TC, Brix, Pol)
       const topLkgTc = lkgTc.ranked[0];
       const topJuiceGroup = lkgTc.ranked.filter(x => x.letters.includes("a")).map(x => `${x.name} (${x.mean.toFixed(2)} LKg/TC)`);
       const p3 = `Rendement & Juice Quality (LKG/TC, Brix, Pol): Sugar recovery per ton of cane (LKG/TC) exhibited ${lkgTc.sigTrt === "**" ? "highly significant" : lkgTc.sigTrt === "*" ? "significant" : "non-significant"} differences among treatments (F = ${lkgTc.fTrt.toFixed(2)} ${lkgTc.sigTrt}, grand mean = ${lkgTc.grandMean.toFixed(2)} LKg/TC). ${topLkgTc.name} achieved the highest sucrose rendement at ${topLkgTc.mean.toFixed(2)} LKg/TC, statistically comparable to ${topJuiceGroup.join(", ")}. Correspondingly, Brix and Pol averaged ${brix.grandMean.toFixed(2)}% (F = ${brix.fTrt.toFixed(2)} ${brix.sigTrt}) and ${pol.grandMean.toFixed(2)}% (F = ${pol.fTrt.toFixed(2)} ${pol.sigTrt}), respectively.`;
 
-      // Paragraph 4: Total Sugar Yield (LKG/Ha) & Agronomic Recommendation
       const topSugar = lkgHa.ranked[0];
       const topSugarGroup = lkgHa.ranked.filter(x => x.letters.includes("a")).map(x => `${x.name} (${x.mean.toFixed(2)} LKg/ha)`);
       const sugarAdv = lkgHa.grandMean > 0 ? (((topSugar.mean - lkgHa.grandMean) / lkgHa.grandMean) * 100).toFixed(1) : "0.0";
@@ -1491,7 +1480,6 @@
       const maxVal = Math.max(...ranked.map(d => d.mean + res.seMean), res.grandMean, 1);
       const yMax = maxVal * 1.18;
 
-      // Gridlines & Y-Axis
       ctx.strokeStyle = "#e2e8f0";
       ctx.fillStyle = "#475569";
       ctx.font = "11px 'IBM Plex Mono', monospace";
@@ -1508,7 +1496,6 @@
         ctx.fillText(val >= 10 ? val.toFixed(0) : val.toFixed(2), pad.left - 8, y);
       }
 
-      // Y-Axis Unit Title
       ctx.save();
       ctx.translate(15, pad.top + plotH / 2);
       ctx.rotate(-Math.PI / 2);
@@ -1518,7 +1505,6 @@
       ctx.fillText(res.meta.label, 0, 0);
       ctx.restore();
 
-      // Grand Mean Dashed Line
       const yGrand = pad.top + plotH - (res.grandMean / yMax) * plotH;
       ctx.save();
       ctx.setLineDash([5, 4]);
@@ -1535,7 +1521,6 @@
       ctx.textAlign = "right";
       ctx.fillText(`Grand Mean = ${res.grandMean.toFixed(2)}`, pad.left + plotW, yGrand - 8);
 
-      // Bars
       const n = ranked.length;
       const slotW = plotW / n;
       const barW = Math.min(46, slotW * 0.56);
@@ -1554,7 +1539,6 @@
         ctx.roundRect(cx - barW / 2, yTop, barW, barH, [5, 5, 0, 0]);
         ctx.fill();
 
-        // Error Bar (± SE)
         const sePx = (res.seMean / yMax) * plotH;
         const yErrTop = Math.max(pad.top + 8, yTop - sePx);
         const yErrBot = Math.min(pad.top + plotH, yTop + sePx);
@@ -1566,13 +1550,11 @@
         ctx.moveTo(cx - 5, yErrBot); ctx.lineTo(cx + 5, yErrBot);
         ctx.stroke();
 
-        // Value + Letter Label
         ctx.fillStyle = "#14532d";
         ctx.font = "bold 11px 'IBM Plex Mono', monospace";
         ctx.textAlign = "center";
         ctx.fillText(`${item.mean.toFixed(1)}${item.letters}`, cx, yErrTop - 9);
 
-        // X-axis Label
         ctx.save();
         ctx.translate(cx, pad.top + plotH + 10);
         ctx.rotate(-0.34);
@@ -1616,13 +1598,11 @@
       const toX = v => pad.left + ((v - xMin) / Math.max(1e-6, xMax - xMin)) * plotW;
       const toY = v => pad.top + plotH - ((v - yMin) / Math.max(1e-6, yMax - yMin)) * plotH;
 
-      // Highlight Upper-Right Elite Quadrant
       const xMeanPx = toX(tcRes.grandMean);
       const yMeanPx = toY(lkgTcRes.grandMean);
       ctx.fillStyle = "rgba(22, 163, 74, 0.08)";
       ctx.fillRect(xMeanPx, pad.top, pad.left + plotW - xMeanPx, yMeanPx - pad.top);
 
-      // Border & Quadrant Crosshairs
       ctx.strokeStyle = "#cbd5e1";
       ctx.strokeRect(pad.left, pad.top, plotW, plotH);
 
@@ -1641,7 +1621,6 @@
       ctx.textAlign = "right";
       ctx.fillText("HIGH TONNAGE + HIGH RENDEMENT", pad.left + plotW - 6, pad.top + 14);
 
-      // Axis Ticks
       ctx.fillStyle = "#475569";
       ctx.font = "10px 'IBM Plex Mono', monospace";
       ctx.textAlign = "center";
@@ -1656,7 +1635,6 @@
         ctx.fillText(yv.toFixed(2), pad.left - 8, toY(yv));
       }
 
-      // Axis Titles
       ctx.fillStyle = "#1e293b";
       ctx.font = "bold 11px 'Inter', sans-serif";
       ctx.textAlign = "center";
@@ -1668,7 +1646,6 @@
       ctx.fillText("Rendement — LKG/TC", 0, 0);
       ctx.restore();
 
-      // Plot Points
       appState.treatments.forEach((name, idx) => {
         const px = toX(xVals[idx]);
         const py = toY(yVals[idx]);
@@ -1720,7 +1697,6 @@
       ctx.strokeStyle = "#e2e8f0";
       ctx.strokeRect(pad.left, pad.top, plotW, plotH);
 
-      // Zero line
       ctx.strokeStyle = "#16a34a";
       ctx.setLineDash([4, 3]);
       ctx.beginPath();
@@ -1778,16 +1754,14 @@
         const dateStr = new Date().toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" });
         const narratives = buildInterpretationParagraphs();
 
-        // Render high-res PNG charts offscreen so they embed cleanly regardless of active tab
         const lkgBarPng = renderOffscreenChartPNG(drawBarChartOnCanvas, allTraitResults.lkg_ha);
         const tcBarPng = renderOffscreenChartPNG(drawBarChartOnCanvas, allTraitResults.tc_ha);
         const quadrantPng = renderOffscreenChartPNG(drawQuadrantScatter, allTraitResults.tc_ha, allTraitResults.lkg_tc, allTraitResults.lkg_ha);
 
-        // If docx library loaded cleanly, build a genuine OpenXML .docx document
         if (window.docx) {
           const {
             Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
-            WidthType, AlignmentType, HeadingLevel, BorderStyle, ShadingType, ImageRun
+            WidthType, AlignmentType, HeadingLevel, ShadingType, ImageRun
           } = window.docx;
 
           const makeCell = (text, options = {}) => {
@@ -1826,7 +1800,6 @@
               ]
             }),
 
-            // Metadata Table
             new Table({
               width: { size: 100, type: WidthType.PERCENTAGE },
               rows: [
@@ -1879,7 +1852,6 @@
             );
           });
 
-          // Table 1: Multi-Trait Summary
           docChildren.push(
             new Paragraph({
               heading: HeadingLevel.HEADING_1,
@@ -1950,7 +1922,6 @@
 
           docChildren.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: summaryRows }));
 
-          // Embedded High-Resolution Charts
           docChildren.push(
             new Paragraph({
               heading: HeadingLevel.HEADING_1,
@@ -2004,7 +1975,6 @@
             })
           );
 
-          // Section IV: Complete Trait-by-Trait ANOVA & Data Tables (Gomez & Gomez Format)
           docChildren.push(
             new Paragraph({
               heading: HeadingLevel.HEADING_1,
@@ -2147,6 +2117,15 @@
                   italics: true, size: 18, color: "64748B", font: "Calibri"
                 })
               ]
+            }),
+            new Paragraph({
+              spacing: { before: 80 },
+              children: [
+                new TextRun({
+                  text: "Workstation Author: VelocityVibe Systems (https://velocityvibesystems.vercel.app/) • Live App: https://sugarcane-rcbd-workstation.vercel.app/",
+                  italics: true, size: 18, color: "166534", font: "Calibri"
+                })
+              ]
             })
           );
 
@@ -2161,7 +2140,6 @@
           triggerDownload(blob, "SRA_LAREC_RCBD_Statistical_Report.docx");
           showToast("Downloaded editable Word report: SRA_LAREC_RCBD_Statistical_Report.docx");
         } else {
-          // Offline fallback Word-compatible HTML document
           const htmlFallback = `<html><head><meta charset="utf-8"><title>${escapeHtml(title)}</title></head><body><h1>${escapeHtml(title)}</h1>${narratives.map(n => `<h3>${n.heading}</h3><p>${n.text}</p>`).join("")}</body></html>`;
           const blob = new Blob([htmlFallback], { type: "application/msword" });
           triggerDownload(blob, "SRA_LAREC_RCBD_Statistical_Report.doc");
@@ -2290,7 +2268,6 @@
           while (arr.length < cols) arr.push(null);
           return arr;
         });
-        // Resize other traits cleanly to match new t x r
         TRAIT_KEYS.forEach(k => {
           if (k === activeTrait) return;
           appState.data[k] = Array.from({ length: rows.length }, (_, i) =>
@@ -2351,5 +2328,18 @@
       recomputeAll();
     };
   </script>
+
+  <footer class="no-print border-t border-slate-200 bg-white py-3 text-center text-xs text-slate-500">
+    Created by
+    <a href="https://velocityvibesystems.vercel.app/" target="_blank" rel="noopener noreferrer"
+      class="font-semibold text-cane-800 underline hover:text-cane-600">
+      VelocityVibe Systems
+    </a>
+    &bull; Live App:
+    <a href="https://sugarcane-rcbd-workstation.vercel.app/" target="_blank" rel="noopener noreferrer"
+      class="font-mono text-cane-800 underline hover:text-cane-600">
+      https://sugarcane-rcbd-workstation.vercel.app/
+    </a>
+  </footer>
 </body>
 </html>
